@@ -8,7 +8,8 @@ type Src = { url: string; label: { en: string } };
 const S = PARAMS.sources as unknown as Record<string, Src>;
 export const src = (...keys: string[]) => keys.map((k) => { const s = S[k]; if (!s) throw new Error(`no source ${k}`); return { name: s.label.en, url: s.url }; });
 export const href = (id: string) => route(id, 'en');
-export const related = (...ids: string[]) => ids.map((id) => { const p = pageById(id)!; return { href: href(id), name: p.nav, description: p.card }; });
+// Cards show the plain name with the ticker (test naïf 2026-11-09: « Other pages » in tickers only).
+export const related = (...ids: string[]) => ids.map((id) => { const p = pageById(id)!; return { href: href(id), name: p.menu ?? p.nav, description: p.card }; });
 export const METHOD = '/en/method/';
 export const fundHref = (t: string) => ((FUND_TICKERS as readonly string[]).includes(t) ? href(`fund-${t.toLowerCase()}`) : undefined);
 /** Every share class in the data, as the islands need it (no holdings detail). */

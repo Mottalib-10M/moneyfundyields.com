@@ -4,7 +4,7 @@ import { FUNDS, pct, bn, rank, KIND_LABEL, KIND_LEGEND, META, YIELD_DAYS } from 
 import { stateRule, stateRate, federalRate, stateName } from '../lib/engine/tax';
 import { fundHref } from '../lib/common';
 interface Props { st: string; income?: number; nyc?: boolean; top?: number }
-const { st, income = 120000, nyc = false, top = 15 } = Astro.props;
+const { st, income = 120000, nyc = false, top = 10 } = Astro.props;
 const name = stateName(st);
 const r = rank({ amount: 50000, state: st, filing: 'single', income, nyc }).slice(0, top);
 const rule = stateRule(st);
@@ -20,13 +20,13 @@ const qShort = (ym: string) => ({ '03': 'Mar 31', '06': 'Jun 30', '09': 'Sep 30'
     <tbody>{r.map((x, i) => <tr><td class="tabular-nums text-right">{i + 1}</td><td>{link(x.f.t) ? <a href={link(x.f.t)}>{x.f.name}</a> : <strong>{x.f.name}</strong>}<span class="block text-xs">{x.f.t}</span></td><td class="tabular-nums text-right font-semibold">{pct(x.r.afterTaxYield)}</td><td class="tabular-nums text-right">{pct(x.f.y)}</td><td>{KIND_LABEL[x.f.k]}{x.f.st ? ` (${x.f.st})` : ''}</td></tr>)}</tbody>
   </table></div>
   <p>{`Ranked by what you keep after federal and state tax, not by the yield before tax. Single filer, $${income.toLocaleString('en-US')} of taxable income, yields the funds reported for ${YIELD_DAYS}. Each fund is shown by name, then its ticker, the short code your brokerage account shows. A ranking of past yields, not a recommendation.`}</p>
-  <p>{KIND_LEGEND}</p>
+  <p>{KIND_LEGEND} The type comes from what the fund held, not from its name. <a href="/en/">All funds, ranked for your own figures</a>.</p>
 </section>
 {rule === 'fifty' && <section data-chrome class="prose prose-slate mt-8 max-w-none">
   <h2>The 15 largest government and Treasury classes and the 50% test</h2>
   <div class="overflow-x-auto"><table>
     <thead><tr><th>Fund</th><th>Passes?</th>{META.quarters.map((q) => <th class="text-right">{qShort(q)}</th>)}<th class="text-right">Assets</th></tr></thead>
-    <tbody>{big.map((f) => { const ok = Object.values(f.q).every((v) => v >= 0.5); return <tr><td>{link(f.t) ? <a href={link(f.t)}>{f.name}</a> : <strong>{f.name}</strong>}<span class="block text-xs">{f.t}</span></td><td>{ok ? 'Yes' : <strong>No: all taxed</strong>}</td>{META.quarters.map((q) => <td class="tabular-nums text-right">{f.q[q] != null ? pct(f.q[q], 0) : 'n/a'}</td>)}<td class="tabular-nums text-right">{bn(f.assets)}</td></tr>; })}</tbody>
+    <tbody>{big.map((f) => { const ok = Object.values(f.q).every((v) => v >= 0.5); return <tr><td>{link(f.t) ? <a href={link(f.t)}>{f.name}</a> : <strong>{f.name}</strong>}<span class="block text-xs">{f.t}</span></td><td>{ok ? 'Yes' : <><strong>No: all taxed</strong><span class="block text-xs">under 50% at a quarter end</span></>}</td>{META.quarters.map((q) => <td class="tabular-nums text-right">{f.q[q] != null ? pct(f.q[q], 0) : 'n/a'}</td>)}<td class="tabular-nums text-right">{bn(f.assets)}</td></tr>; })}</tbody>
   </table></div>
   <p>{`Percentages: share of the fund’s money in U.S. government debt that ${name} cannot tax (Treasuries, and debt of the Federal Home Loan Banks, Farm Credit Banks and Tennessee Valley Authority) at each quarter end of ${META.quarters[0].slice(0, 4)}, from the fund’s own reports. Below 50% at any quarter end, and the whole dividend is taxed by the state (“No: all taxed”). Above it, the part earned on that debt is state-tax-free (“Yes”).`}</p>
 </section>}
@@ -36,5 +36,5 @@ const qShort = (ym: string) => ({ '03': 'Mar 31', '06': 'Jun 30', '09': 'Sep 30'
     <thead><tr><th>Taxable income</th><th class="text-right">State, single</th><th class="text-right">State, joint</th><th class="text-right">Federal, single</th></tr></thead>
     <tbody>{incomes.map((i) => <tr><td class="tabular-nums">${i.toLocaleString('en-US')}</td><td class="tabular-nums text-right">{pct(stateRate({ state: st, filing: 'single', income: i, nyc }))}</td><td class="tabular-nums text-right">{pct(stateRate({ state: st, filing: 'joint', income: i, nyc }))}</td><td class="tabular-nums text-right">{pct(federalRate('single', i).rate + federalRate('single', i).niit, 1)}</td></tr>)}</tbody>
   </table></div>
-  <p>State rates from the published schedules for tax year 2025, federal rates from the 2026 brackets including the 3.8% net investment income tax where it applies. The calculator uses the same figures.</p>
+  <p>State rates from the published schedules for tax year 2025, federal rates from the 2026 brackets including the 3.8% net investment income tax (an extra federal tax on investment income above $200,000 of income for a single filer, $250,000 for a couple) where it applies. The calculator uses the same figures.</p>
 </section>}

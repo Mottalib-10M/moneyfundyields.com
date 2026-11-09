@@ -27,13 +27,13 @@ const fundPages: PageDef[] = FUND_TICKERS.map((t) => ({ id: `fund-${t.toLowerCas
 
 export const PAGES: PageDef[] = [
   ...fundPages,
-  { id: 'vmfxx-vs-vusxx', slug: 'vmfxx-vs-vusxx', group: 'compare', nav: 'VMFXX vs VUSXX', card: 'Vanguard Federal against Vanguard Treasury, after state tax' },
-  { id: 'spaxx-vs-fdrxx', slug: 'spaxx-vs-fdrxx', group: 'compare', nav: 'SPAXX vs FDRXX', card: 'Two Fidelity government funds, two expense levels' },
-  { id: 'spaxx-vs-vmfxx', slug: 'spaxx-vs-vmfxx', group: 'compare', nav: 'SPAXX vs VMFXX', card: 'The default cash funds of Fidelity and Vanguard, after tax' },
-  { id: 'swvxx-vs-snsxx', slug: 'swvxx-vs-snsxx', group: 'compare', nav: 'SWVXX vs SNSXX', card: 'Schwab prime against Schwab Treasury, by state' },
-  { id: 'treasury-bills-vs-money-market-funds', slug: 'treasury-bills-vs-money-market-funds', group: 'compare', nav: 'T-bills, SGOV vs money funds', card: 'Bills bought yourself or a T-bill ETF (SGOV, BIL) against a money fund' },
+  { id: 'vmfxx-vs-vusxx', slug: 'vmfxx-vs-vusxx', group: 'compare', nav: 'VMFXX vs VUSXX', menu: 'Vanguard Federal vs Vanguard Treasury (VMFXX vs VUSXX)', card: 'Vanguard Federal against Vanguard Treasury, after state tax' },
+  { id: 'spaxx-vs-fdrxx', slug: 'spaxx-vs-fdrxx', group: 'compare', nav: 'SPAXX vs FDRXX', menu: 'Two Fidelity government funds (SPAXX vs FDRXX)', card: 'Two Fidelity government funds, two expense levels' },
+  { id: 'spaxx-vs-vmfxx', slug: 'spaxx-vs-vmfxx', group: 'compare', nav: 'SPAXX vs VMFXX', menu: 'Fidelity’s cash fund vs Vanguard’s (SPAXX vs VMFXX)', card: 'The default cash funds of Fidelity and Vanguard, after tax' },
+  { id: 'swvxx-vs-snsxx', slug: 'swvxx-vs-snsxx', group: 'compare', nav: 'SWVXX vs SNSXX', menu: 'Schwab prime vs Schwab Treasury (SWVXX vs SNSXX)', card: 'Schwab prime against Schwab Treasury, by state' },
+  { id: 'treasury-bills-vs-money-market-funds', slug: 'treasury-bills-vs-money-market-funds', group: 'compare', nav: 'T-bills, SGOV vs money funds', menu: 'Treasury bills and T-bill ETFs vs money funds', card: 'Bills bought yourself or a T-bill ETF (SGOV, BIL) against a money fund' },
   { id: 'money-market-vs-high-yield-savings', slug: 'money-market-vs-high-yield-savings', group: 'compare', nav: 'Money fund vs savings', card: 'Cash in a savings account? Compare it with a money fund after tax' },
-  { id: 'prime-vs-government-money-market-funds', slug: 'prime-vs-government-money-market-funds', group: 'compare', nav: 'Prime vs government', card: 'Yield gap between prime, government and Treasury funds' },
+  { id: 'prime-vs-government-money-market-funds', slug: 'prime-vs-government-money-market-funds', group: 'compare', nav: 'Prime vs government', menu: 'Prime vs government funds', card: 'Yield gap between prime, government and Treasury funds' },
   { id: 'california', slug: 'california', group: 'states', nav: 'California', card: 'The 50% rule and the funds that pass it' },
   { id: 'new-york', slug: 'new-york', group: 'states', nav: 'New York', card: 'State and New York City tax on fund dividends' },
   { id: 'connecticut', slug: 'connecticut', group: 'states', nav: 'Connecticut', card: 'Quarter-end test and 2025 brackets' },
@@ -42,9 +42,9 @@ export const PAGES: PageDef[] = [
   { id: 'illinois', slug: 'illinois', group: 'states', nav: 'Illinois', card: 'Flat 4.95%, repo income taxed' },
   { id: 'no-income-tax-states', slug: 'no-income-tax-states', group: 'states', nav: 'No income tax states', card: 'Texas, Florida and seven others: only federal tax' },
   { id: 'seven-day-yield', slug: 'seven-day-yield', group: 'guides', nav: '7-day yield', card: 'What the 7-day yield measures and what it pays' },
-  { id: 'fifty-percent-rule', slug: 'fifty-percent-rule', group: 'guides', nav: '50% rule', card: 'The quarter-end test of California, Connecticut and New York' },
-  { id: 'us-government-obligations-percentage', slug: 'us-government-obligations-percentage', group: 'guides', nav: 'Tax letter %', card: 'Using the fund’s year-end percentage on your state return' },
-  { id: 'municipal-money-market-funds', slug: 'municipal-money-market-funds', group: 'guides', nav: 'Municipal funds', card: 'Tax-exempt and single-state funds, tax-equivalent yield' },
+  { id: 'fifty-percent-rule', slug: 'fifty-percent-rule', group: 'guides', nav: '50% rule', menu: 'The 50% state-tax rule', card: 'The quarter-end test of California, Connecticut and New York' },
+  { id: 'us-government-obligations-percentage', slug: 'us-government-obligations-percentage', group: 'guides', nav: 'Tax letter %', menu: 'Your fund’s tax letter: the % to use', card: 'Using the fund’s year-end percentage on your state return' },
+  { id: 'municipal-money-market-funds', slug: 'municipal-money-market-funds', group: 'guides', nav: 'Municipal funds', menu: 'Municipal funds (free of federal tax)', card: 'Tax-exempt and single-state funds, tax-equivalent yield' },
   { id: 'money-market-fund-rules', slug: 'money-market-fund-rules', group: 'guides', nav: 'Fund rules', card: 'Rule 2a-7: maturity limits, liquidity and fees' },
 ];
 export const pageById = (id: string) => PAGES.find((p) => p.id === id);

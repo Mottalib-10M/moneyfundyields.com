@@ -23,7 +23,7 @@ export default function FiftyPicker({ funds, quarters, def }: Props) {
           <SelectField id="fifty-fund" label="Fund" value={f.t} onChange={(v) => { setTouched(true); setT(v); }} options={funds.map((x) => ({ value: x.t, label: optionLabel(x.t, x.name) }))} help="Government and Treasury funds in the data, largest first" />
         </form>
         <div data-resultat aria-live="polite" className="rounded-lg bg-navy-50 p-4">
-          <MentionExemple lang="en" touched={touched ? { f: true } : {}} />
+          <MentionExemple lang="en" touched={touched ? { f: true } : {}} aide={`example fund ${def}; pick yours in the list above`} />
           <p className="text-sm font-medium text-navy-600">{f.t} in California, Connecticut and New York</p>
           <p className="mt-1 text-2xl font-bold text-navy-900">{ok ? 'Passes' : 'Fails: whole dividend taxed'}</p>
           <table className="mt-3 w-full text-sm"><tbody className="divide-y divide-navy-200">

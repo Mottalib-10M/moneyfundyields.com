@@ -9,7 +9,6 @@ import StackedBar from '../ui/StackedBar';
 import { afterTax, hasSchedule, isNoTax, stateName, stateOptions, stateRule, type Filing, type FundTax, type Result } from '../../lib/engine/tax';
 import { formatMoney } from '../../lib/format';
 import { readParams, num, str, updateURL } from '../../lib/url-state';
-import { libellesTrame } from '../../lib/libelles-trame';
 import MentionExemple from './MentionExemple';
 
 export interface FundLite extends FundTax { t: string; name: string; yDate: string }
@@ -25,6 +24,8 @@ interface Props {
 
 const pct = (x: number, d = 2) => `${(x * 100).toFixed(d)}%`;
 const STATES = stateOptions();
+/** Where to find the figure (test naïf 2026-11-09: « je ne connais pas mon revenu imposable, je taperai mon brut »). */
+export const TAXABLE_HELP = 'Form 1040 “taxable income” line, not salary. Rough is fine';
 /** Simple 7-day yield to the yield of a year of daily reinvested dividends, the basis of an APY. */
 export const effective = (y: number) => (1 + y / 365) ** 365 - 1;
 /** The reverse: an APY back to the simple yearly rate of daily interest, the basis of a 7-day yield. */
@@ -72,6 +73,8 @@ export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState =
   // here and 2.96% in every ranking (test naif tour 2). Now the fund keeps the figure of every other page and the APY
   // the reader types is turned back into the simple yearly rate that a 7-day yield is quoted on.
   const vsApy = alt?.kind === 'savings';
+  // A bill pays interest, not dividends (test naïf 2026-11-09: « $1,975 of dividends » pour un bon du Trésor).
+  const altPaid = alt?.kind === 'savings' || alt?.kind === 'bill' ? 'interest' : 'dividends';
   const ra = useMemo(() => afterTax(fundA, sit), [fundA, amount, state, filing, income, other, nyc, letter]);
   const rb = useMemo(() => (fundB ? afterTax(fundB, { ...sit, exemptOverride: null }) : undefined), [fundB, amount, state, filing, income, other, nyc]);
   const altFund: FundTax | undefined = alt ? (alt.kind === 'savings'
@@ -102,24 +105,24 @@ export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState =
   return (
     <div data-chrome data-outil className="not-prose grid gap-6 rounded-xl border border-navy-200 bg-white p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <form className="grid content-start gap-x-4 gap-y-3 sm:grid-cols-2" onSubmit={(e) => e.preventDefault()} aria-label="Your tax situation">
-        {example && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-navy-800 sm:col-span-2"><strong>Example:</strong> {who}. Change the boxes to your own numbers.</p>}
+        {example && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-navy-800 sm:col-span-2"><strong>Example:</strong> {who}. Change the boxes to your own numbers (every page starts from this example).</p>}
         {pick && <SelectField id={`${id}-fund`} label={b ? 'First fund' : 'Fund'} value={fundA.t} onChange={setFa} options={opts} className="sm:col-span-2" />}
         {!pick && b && <p className="text-sm text-navy-700 sm:col-span-2"><span className="font-medium">First fund:</span> {fundA.t} · {fundA.name}</p>}
         {b && <SelectField id={`${id}-vs`} label="Second fund" value={fundB?.t ?? ''} onChange={setFb} options={opts} className="sm:col-span-2" />}
         {alt && <NumberField id={`${id}-alt`} label={alt.kind === 'savings' ? 'Savings account rate (APY)' : `${alt.label} yield you see`} value={altYield} onChange={mine(setAltYield)} unit="%" max={20} decimals={2} help={alt.help} />}
-        {alt?.kind === 'etf' && <NumberField id={`${id}-alts`} label="Share from Treasuries" value={altShare} onChange={setAltShare} unit="%" max={100} help="From the ETF’s year-end tax letter" />}
+        {alt?.kind === 'etf' && <NumberField id={`${id}-alts`} label="Share from Treasuries" value={altShare} onChange={setAltShare} unit="%" max={100} help="Leave 100% for an ETF that holds only Treasuries; its year-end tax letter gives the exact share" />}
         <SelectField id={`${id}-st`} label="State you live in" value={state} onChange={mine(setState)} options={STATES} />
-        <NumberField id={`${id}-inc`} label="Taxable income" value={income} onChange={mine(setIncome)} unit="$" max={10_000_000} help="After deductions, pensions included; a rough figure is fine" />
+        <NumberField id={`${id}-inc`} label="Taxable income" value={income} onChange={mine(setIncome)} unit="$" max={10_000_000} help={TAXABLE_HELP} />
         <Toggle id={`${id}-fs`} label="Filing status" value={filing} onChange={mine((v: string) => setFiling(v === 'joint' ? 'joint' : 'single'))} options={[{ value: 'single', label: 'Single' }, { value: 'joint', label: 'Married, joint' }]} />
         <NumberField id={`${id}-amt`} label="Amount of cash" value={amount} onChange={mine(setAmount)} unit="$" max={50_000_000} />
         {!hasSchedule(state) && !isNoTax(state) && <NumberField id={`${id}-sr`} label="Your state tax rate" value={other} onChange={setOther} unit="%" max={20} decimals={2} help="Top rate that applies to your last dollar" />}
         {state === 'NY' && <Toggle id={`${id}-nyc`} label="New York City resident" value={nyc} onChange={setNyc} options={[{ value: 'no', label: 'No' }, { value: 'yes', label: 'Yes' }]} />}
         <details className="sm:col-span-2 rounded-lg border border-navy-200 px-3 py-2">
-          <summary className="cursor-pointer text-sm font-medium text-navy-700">Have the fund’s year-end tax statement? Type its U.S. government percentage
-            {/* Valeur actuelle du champ replié, lisible sans ouvrir (report de trame, testeurs naïfs du 2026-11-08). */}
-            <span data-actuellement className="mt-0.5 block text-xs font-normal text-navy-600">{libellesTrame('en').actuellement}: {letter > 0 ? `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(letter)}% from your statement` : 'empty, so this site’s estimate from the fund’s holdings is used'}</span></summary>
+          <summary className="cursor-pointer text-sm font-medium text-navy-700">Optional: the fund’s year-end tax letter, if you have it
+            {/* Valeur actuelle du champ replié, lisible sans ouvrir. Phrase entière plutôt que « Now: » de la trame (testeurs naïfs du 2026-11-09). */}
+            <span data-actuellement className="mt-0.5 block text-xs font-normal text-navy-600">{letter > 0 ? `In use: ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(letter)}% from your letter` : 'Nothing to do without it: this site estimates the share from the fund’s holdings'}</span></summary>
           <div className="mt-3 grid gap-x-4 sm:grid-cols-2">
-            <NumberField id={`${id}-tl`} label={`${fundA.t}: share of dividends from U.S. government debt`} value={letter} onChange={setLetter} unit="%" max={100} decimals={2} help="Leave empty to use this site’s estimate from the fund’s holdings" />
+            <NumberField id={`${id}-tl`} label={`${fundA.t}: share of dividends from U.S. government debt`} value={letter} onChange={setLetter} unit="%" max={100} decimals={2} help="Empty: the site’s holdings estimate is used" />
           </div>
         </details>
       </form>
@@ -133,12 +136,14 @@ export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState =
           <p className="mt-1 text-xs text-navy-600">{fundA.t} may be just your brokerage’s default. Your brokerage decides which other funds you can buy there, with what minimum and fee: check its list before moving cash. Not a bank account: not FDIC-insured.</p>
         </div>}
         {second && <div className="mt-4 border-t border-accent-200 pt-3">
-          {vsApy && <p className="mb-2 text-xs text-navy-700">At {pct(altYield / 100)} APY your bank pays about <strong>{formatMoney(amount * altYield / 100)}</strong> a year on {formatMoney(amount)}, counting interest on interest. A fund’s 7-day yield does not count it, so to compare fairly the bank rate is counted here the same way: {pct(simpleOfApy(altYield / 100))}, {formatMoney(second.gross)} a year.</p>}
-          <ResultHead r={second} name={secondName} small paid={vsApy ? 'interest' : 'dividends'} />
-          <Lines r={second} rule={rule} name={secondName} paid={vsApy ? 'Interest' : 'Dividends'} small />
-          <p className="mt-2 text-sm text-navy-800">{gapShown(ra.net, second.net) >= 0
+          {/* The answer first, then the detail of the second fund (test naïf 2026-11-09: the conclusion came after two blocks). */}
+          <p data-ecart className="mb-3 rounded-lg bg-white px-3 py-2 text-base text-navy-900">{gapShown(ra.net, second.net) >= 0
             ? <>{fundA.t} leaves <strong>{formatMoney(gapShown(ra.net, second.net))}</strong> more a year than {secondInText}.</>
             : <>{secondName} leaves <strong>{formatMoney(gapShown(second.net, ra.net))}</strong> more a year than {fundA.t}.</>}</p>
+          {vsApy && <p className="mb-2 text-xs text-navy-700">Your bank’s {pct(altYield / 100)} APY pays about <strong>{formatMoney(amount * altYield / 100)}</strong> a year on {formatMoney(amount)}, interest on interest included. Fund yields leave that out, so the bank is counted the same way here: {pct(simpleOfApy(altYield / 100))}, {formatMoney(second.gross)} a year. Reinvested, both earn a little more.</p>}
+          <ResultHead r={second} name={secondName} small paid={altPaid} />
+          <Lines r={second} rule={rule} name={secondName} paid={altPaid === 'interest' ? 'Interest' : 'Dividends'} bank={vsApy} small />
+          {vsApy && <p className="mt-2 text-xs text-navy-700">No brokerage account? A money fund is bought through one, opened with a fund company or a broker, which sets the funds offered, the minimum and fees. A bank’s money market <em>account</em> is not a fund.</p>}
         </div>}
         <p className="mt-3 text-xs text-navy-600">{dates.length > 1 ? `Yields reported by the funds for ${fundA.t} ${longDate(fundA.yDate)}, ${fundB!.t} ${longDate(fundB!.yDate)}` : `Yield reported by the fund for ${longDate(fundA.yDate)}`}; yields change daily. Estimate, not tax or investment advice. Nothing you type leaves your browser. <a href={methodHref} className="underline">How it is computed</a></p>
       </div>
@@ -154,19 +159,22 @@ function ResultHead({ r, name, small = false, paid = 'dividends' }: { r: Result;
   </div>);
 }
 
-function Lines({ r, rule, name, paid = 'Dividends', small = false }: { r: Result; rule: string; name: string; paid?: string; small?: boolean }) {
+function Lines({ r, rule, name, paid = 'Dividends', small = false, bank = false }: { r: Result; rule: string; name: string; paid?: string; small?: boolean; bank?: boolean }) {
   // In dollars, not as a share: "71% state-tax-free" sat next to "Kept 73%" and the two were read as one (test naif tour 2).
-  const free = `${formatMoney(r.gross * r.exemptShare)} of the ${formatMoney(r.gross)} is free of ${r.stateLabel} tax`;
-  const note = rule === 'none' ? 'no state income tax' : paid === 'Interest' ? 'bank interest: all of it taxed by the state'
-    : rule === 'fifty' ? (r.fifty === 'fails' ? 'fund missed the 50% rule: all of it taxed' : free)
-    : rule === 'unverified' ? `${formatMoney(r.gross * r.exemptShare)} of the ${formatMoney(r.gross)} assumed free of state tax` : free;
+  // The rate applies to the taxed part only, and the line says so (test naïf 2026-11-09: « 9,3 % de 1 775 $, ça ne fait pas 48 $ »).
+  const freeAmt = formatMoney(r.gross * r.exemptShare);
+  const taxed = `${pct(r.stateRate, 2)} on the ${formatMoney(r.stateTaxable)} ${rule === 'unverified' ? 'the state' : r.stateLabel} taxes`;
+  const free = r.stateTaxable <= 0.5 ? `none: all ${formatMoney(r.gross)} is free of ${r.stateLabel} tax` : `${taxed}; the other ${freeAmt} is free of it`;
+  const note = rule === 'none' ? 'none: no state income tax' : bank ? `${taxed}: bank interest is taxed in full`
+    : rule === 'fifty' ? (r.fifty === 'fails' ? `${taxed}: the fund missed the 50% rule, so all of it is taxed` : free)
+    : rule === 'unverified' ? (r.stateTaxable <= 0.5 ? `none: all ${formatMoney(r.gross)} assumed free of state tax` : `${taxed}; the other ${freeAmt} assumed free of it`) : free;
   return (<>
     <table className="mt-3 w-full text-sm"><tbody className="divide-y divide-accent-200">
       <tr><td className="py-1.5 pr-2 text-navy-700">{paid} before tax</td><td className="tabular-nums py-1.5 text-right text-navy-900">{formatMoney(r.gross)}</td></tr>
       <tr><td className="py-1.5 pr-2 text-navy-700">{r.fedTax === 0 && r.gross > 0 ? <>Federal tax <span className="block text-xs text-navy-600">none: a municipal fund’s dividends are free of federal tax</span></> : `Federal tax at ${pct(r.fedRate + r.niit, 1)}`}</td><td className="tabular-nums py-1.5 text-right text-navy-900">−{formatMoney(r.fedTax)}</td></tr>
-      <tr><td className="py-1.5 pr-2 text-navy-700">State tax at {pct(r.stateRate, 2)} <span className="block text-xs text-navy-600">{note}</span></td><td className="tabular-nums py-1.5 text-right text-navy-900">−{formatMoney(r.stateTax)}</td></tr>
+      <tr><td className="py-1.5 pr-2 text-navy-700">{rule === 'none' || rule === 'unverified' ? 'State tax' : `${r.stateLabel} tax`} <span className="block text-xs text-navy-600">{note}</span></td><td className="tabular-nums py-1.5 text-right text-navy-900">−{formatMoney(r.stateTax)}</td></tr>
     </tbody></table>
-    {!small && <div className="mt-3"><StackedBar ariaPrefix={`${name} dividends`} total={r.gross} segments={[{ label: 'Kept', value: Math.max(0, r.net), color: '#1F5C4A' }, { label: 'Federal', value: r.fedTax, color: '#94a3b8' }, { label: 'State', value: r.stateTax, color: '#cbd5e1' }]} /></div>}
+    {<div className="mt-3"><StackedBar ariaPrefix={`${name} dividends`} total={r.gross} segments={[{ label: 'Kept', value: Math.max(0, r.net), color: '#1F5C4A' }, { label: 'Federal', value: r.fedTax, color: '#94a3b8' }, { label: 'State', value: r.stateTax, color: '#cbd5e1' }]} /></div>}
   </>);
 }
 

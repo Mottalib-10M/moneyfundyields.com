@@ -24,7 +24,7 @@ const faqs = [
 ---
 <ToolPage id="vmfxx-vs-vusxx" title={title} description={description} crumb="VMFXX vs VUSXX"
   h1="VMFXX vs VUSXX after federal and state tax"
-  lede={`Vanguard Federal against Vanguard Treasury, 7-day yields as filed for ${day(a.yDate)}. Not investment advice.`}
+  lede={`VMFXX (Vanguard Federal) against VUSXX (Vanguard Treasury), 7-day yields as filed for ${day(a.yDate)}. Not investment advice.`}
   faqs={faqs} related={related('fund-vmfxx', 'fund-vusxx', 'fifty-percent-rule')} sources={src('nmfp', 'ftb-ca', 'ny-it201i', 'nj-git5', 'irs-rp')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VUSXX" b="VMFXX" pick={false} methodHref={METHOD} id="c-vv" />
   <div class="prose prose-slate mt-10 max-w-none">

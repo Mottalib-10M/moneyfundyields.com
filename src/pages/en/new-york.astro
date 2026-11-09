@@ -24,11 +24,11 @@ const out = afterTax(swv, s(true)), outT = afterTax(vus, s(true));
 ---
 <ToolPage id="new-york" title={title} description={description} crumb="New York"
   h1="New York money market fund tax: state, city and the 50% rule"
-  lede={`Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, New York State and City rates for tax year 2025. Not tax or investment advice.`}
+  lede={`New York money market fund tax, state and city, spares the part of a dividend earned on U.S. obligations only if the fund held at least half its assets in them at every quarter end. Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, New York State and City rates for tax year 2025. Not tax or investment advice.`}
   faqs={faqs} related={related('fifty-percent-rule', 'fund-vyfxx', 'spaxx-vs-vmfxx')} sources={src('ny-it201i', 'nmfp', 'irs-rp', 'irs-niit')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VUSXX" b="VYFXX" methodHref={METHOD} defState="NY" defIncome={250000} defAmount={100000} id="c-ny" />
   <div class="prose prose-slate mt-10 max-w-none">
-    <h2>Two taxes on the same dividend, one exemption</h2>
+    <h2>New York State and City tax on the same fund dividend, one exemption</h2>
     <p>A New York City resident pays two income taxes on a money market fund dividend, the state’s and the city’s, both at progressive rates. The exemption works the same way for both. New York lets residents subtract interest on U.S. government obligations, and for a mutual fund it applies the same condition as California: the fund must have held at least 50% of its assets in such obligations at the end of each quarter of its tax year, and only the share of dividends from them is subtracted. Repo income does not qualify. A fund below 50% at a single quarter end gives no subtraction at all. The stakes are higher than elsewhere because the two rates stack: at $250,000 of income a city resident pays the state rate plus about {pct(city, 2)} to the city on every taxable dollar. On $100,000 held by a single filer at that income, the prime fund SWVXX, which paid {pct(swv.y)}, left {pct(out.afterTaxYield)} after federal, state and city tax, while the Treasury fund VUSXX, which paid {pct(vus.y)}, left {pct(outT.afterTaxYield)}. The data also holds {nyMunis.length} New York municipal share classes, free of all three taxes for residents; the calculator starts with one of them against VUSXX.</p>
   </div>
   <StateTables st="NY" income={250000} nyc={true} />

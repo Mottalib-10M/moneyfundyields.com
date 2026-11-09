@@ -29,7 +29,7 @@ const faqs = [
 ---
 <GuideLayout lang="en" id="municipal-money-market-funds" title={title} description={description} breadcrumbLabel="Municipal funds"
   h1="Municipal money market funds: when tax-exempt beats taxable"
-  intro="National and single-state tax-exempt funds as filed, and the arithmetic that decides whether their lower yield leaves you more."
+  intro="Municipal money market funds pay a lower yield that is free of federal tax; here are the national and single-state funds as filed, and the arithmetic that decides whether that lower yield leaves you more."
   faqs={faqs} related={related('fund-vmsxx', 'fund-vctxx', 'fund-vyfxx')} sources={src('nmfp', 'irs-rp', 'irs-niit', 'ftb-ca', 'ny-it201i')}>
   <p>A municipal money market fund holds short-term debt of states, cities, school districts and public agencies, mostly variable-rate demand notes that the fund can sell back at par on a few days’ notice. Interest on that debt is exempt from regular federal income tax, and the fund passes the exemption to its shareholders. The price of the exemption is a lower yield. In the data behind this site, the {nat.n} national municipal share classes averaged a 7-day yield of {pct(nat.mean)}, the {st.n} single-state classes {pct(st.mean)}, and the {gov.n} government classes {pct(gov.mean)}. The municipal average was {Math.round(ratio * 100)}% of the government average. The lower that ratio, the higher the tax rate needed before the exemption pays for itself: at {Math.round(ratio * 100)}%, tax would have to take more than {pct(1 - ratio, 0)} of a taxable dividend. The question for any reader is simple to state: does the tax saved make up for the yield given up? The answer depends on two rates, federal and state, and on whether the fund’s bonds come from your own state.</p>
 
@@ -50,7 +50,7 @@ const faqs = [
   <h2>Taxes the calculators do not model</h2>
   <p>Some municipal funds hold private activity bonds, whose interest is a preference item for the alternative minimum tax. Since the 2017 tax law raised the exemption, few households pay that tax, but those who do should check the share of AMT income in the fund’s year-end letter. The calculators here also ignore the phase-outs and credits that make a real marginal rate differ from the bracket rate. And municipal funds held in a tax-deferred account waste their exemption: inside an IRA, compare funds on yield alone.</p>
 
-  <h2>Municipal funds in the data</h2>
+  <h2>Municipal money market funds in the data</h2>
   <div data-chrome class="overflow-x-auto"><table>
     <thead><tr><th>Fund</th><th>State</th><th class="text-right">7-day yield</th><th class="text-right">Assets</th></tr></thead>
     <tbody>{munis.slice(0, 12).map((f) => { const h = fundHref(f.t); return <tr><td>{h ? <a href={h}>{f.t}</a> : f.t} {f.name}</td><td>{f.st ?? 'National'}</td><td class="tabular-nums text-right">{pct(f.y)}</td><td class="tabular-nums text-right">{bn(f.assets)}</td></tr>; })}</tbody>

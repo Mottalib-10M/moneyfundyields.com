@@ -23,11 +23,11 @@ const faqs = [
 ---
 <ToolPage id="pennsylvania" title={title} description={description} crumb="Pennsylvania"
   h1="Pennsylvania money market fund tax: flat 3.07% and the exempt share"
-  lede={`Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, Pennsylvania rate for tax year 2025. Not tax or investment advice.`}
+  lede={`Pennsylvania money market fund tax applies the flat state rate to the dividend, minus the part earned on U.S. obligations, with no quarter-end test. Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, Pennsylvania rate for tax year 2025. Not tax or investment advice.`}
   faqs={faqs} related={related('swvxx-vs-snsxx', 'prime-vs-government-money-market-funds', 'us-government-obligations-percentage')} sources={src('pa-pit', 'nmfp', 'irs-rp')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SWVXX" b="SNSXX" methodHref={METHOD} defState="PA" id="c-pa" />
   <div class="prose prose-slate mt-10 max-w-none">
-    <h2>A low flat rate shrinks the value of the exemption</h2>
+    <h2>Pennsylvania’s low flat tax shrinks the value of the fund exemption</h2>
     <p>Pennsylvania taxes money market fund dividends at the same flat 3.07% it applies to all classes of personal income, and lets residents leave out the part of a dividend that comes from obligations of the United States. There is no quarter-end test: a fund with 40% of its assets in Treasuries passes 40% of its income free of state tax. That sounds generous, but the low rate makes the exemption worth little. On a Treasury fund paying {pct(sns.y)}, escaping a 3.07% tax adds about {pct(saved, 3)} of yield, or {usd(saved * 50000)} a year on {usd(50000)}. So in Pennsylvania the ranking after tax follows the ranking before tax more closely than in high-tax states. On the filed figures, for a single filer with $120,000 of taxable income, the Schwab prime fund SWVXX left {pct(a.afterTaxYield)} after Pennsylvania and federal tax and the Schwab Treasury fund SNSXX {pct(b.afterTaxYield)}: {a.net >= b.net ? 'the prime fund’s higher yield survived the state tax' : 'the Treasury fund still kept more'}. Federal tax, at {pct(a.fedRate + a.niit, 0)} on that income, takes far more than the state does.</p>
   </div>
   <StateTables st="PA" />

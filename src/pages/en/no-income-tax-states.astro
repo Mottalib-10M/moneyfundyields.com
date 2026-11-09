@@ -22,11 +22,11 @@ const faqs = [
 ---
 <ToolPage id="no-income-tax-states" title={title} description={description} crumb="No income tax states"
   h1="Money market funds in states with no income tax"
-  lede={`Yields as filed for ${YIELD_DAYS}, federal brackets for 2026. Not tax or investment advice.`}
+  lede={`In no income tax states, money market fund dividends face federal tax only, so the taxable fund with the highest 7-day yield keeps the most. Yields as filed for ${YIELD_DAYS}, federal brackets for 2026. Not tax or investment advice.`}
   faqs={faqs} related={related('prime-vs-government-money-market-funds', 'fund-swvxx', 'municipal-money-market-funds')} sources={src('nmfp', 'irs-rp', 'irs-niit')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SWVXX" b="VUSXX" methodHref={METHOD} defState="TX" id="c-nt" />
   <div class="prose prose-slate mt-10 max-w-none">
-    <h2>When only federal tax applies, yield decides</h2>
+    <h2>In states with no income tax, money fund yield decides</h2>
     <p>In {names.slice(0, -1).join(', ')} and {names[names.length - 1]}, there is no state tax on interest or dividends, so the question that fills the other pages of this site disappears. Every taxable money fund pays federal income tax at your marginal rate, plus the 3.8% net investment income tax above the thresholds, and nothing else. Whether the fund held Treasuries, repo or bank paper, and whether it passed a 50% test, changes nothing about the tax. The ranking after tax is then the ranking by 7-day yield: the highest-yielding taxable share class in the data, {best.t} at {pct(best.y)}, is also first among taxable funds after tax for every reader in these states. What remains are the choices tax does not settle: credit risk (prime funds lend to banks and companies, Treasury funds to the government), the possibility of liquidity fees in retail prime funds, minimum investments, and which funds your brokerage offers. A difference of 0.20 points of yield on {usd(100000)} is {usd(200)} a year before federal tax. The table below ranks the top fifteen share classes; the calculator compares any two.</p>
   </div>
   <StateTables st="TX" />

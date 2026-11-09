@@ -23,7 +23,7 @@ const faqs = [
 ---
 <GuideLayout lang="en" id="us-government-obligations-percentage" title={title} description={description} breadcrumbLabel="Tax letter %"
   h1="The U.S. government obligations percentage on your fund’s tax letter"
-  intro="One percentage per fund, published after year end, decides how much of your money fund dividend your state can tax."
+  intro="The U.S. government obligations percentage on your fund’s tax letter, one figure per fund published after year end, decides how much of your money fund dividend your state can tax."
   faqs={faqs} related={related('fifty-percent-rule', 'new-jersey', 'illinois')} sources={src('ftb-ca', 'ny-it201i', 'nj-git5', 'il-pub101', 'pa-pit')}>
   <p>Every January or February, money fund companies publish a short table that most shareholders never open: for each fund, the percentage of the year’s ordinary dividends that came from obligations of the United States. That figure is what a state return needs. Federal law forbids states to tax interest on U.S. obligations, so the part of a fund dividend earned on Treasuries and on a few agencies’ debt can be subtracted from state income. Form 1099-DIV does not show it: the 1099 reports the total dividend, and the subtraction has to be worked out from the company’s supplement. The figure is often lower than investors expect. For 2024, Vanguard reported 59.87% for Vanguard Federal (VMFXX), 63.61% for Vanguard Cash Reserves Federal (VMRXX) and 100% for Vanguard Treasury (VUSXX). The rest of each dividend, from repurchase agreements and other holdings, was taxable by states. On $3,000 of dividends from VMFXX, the subtraction would be about {usd(3000 * LETTER.VMFXX)}; at a 9.3% state rate, that saves about {usd(3000 * LETTER.VMFXX * 0.093)} of tax.</p>
 
@@ -37,7 +37,7 @@ const faqs = [
     <tbody>{Object.entries(vmf.comp).sort((a, b) => b[1] - a[1]).map(([k, v]) => <tr><td>{COMP_LABEL[k]}</td><td class="tabular-nums text-right">{pct(v, 1)}</td></tr>)}</tbody>
   </table></div>
 
-  <h2>How each state uses it</h2>
+  <h2>How each state uses the percentage on the fund tax letter</h2>
   <p>In California, Connecticut and New York, the percentage applies only if the fund held at least 50% of its assets in qualifying obligations at the close of each quarter; fund companies usually say on the same page whether that was the case. In California the subtraction goes on Schedule CA (540); in New York on the line of Form IT-201 for interest income on U.S. government bonds. New Jersey applies the percentage without a threshold for federal obligations, according to its GIT-5 publication, and has a separate rule for qualified investment funds holding 80% or more in New Jersey-exempt obligations. Pennsylvania and Illinois apply it without a threshold. Illinois Publication 101 lists which federal agencies’ interest qualifies and confirms that repo income does not. A few states, and the treatment of some agencies, differ; the instructions of your own state’s return are the authority.</p>
   <p>The difference this makes is easy to underestimate. Take a single Californian with $120,000 of taxable income and $50,000 in VMFXX. Using the holdings estimate, the calculator gives {pct(est.afterTaxYield)} after federal and California tax. Entering the 2024 letter figure of 59.87% instead gives {pct(let_.afterTaxYield)}, a difference of {usd(est.net - let_.net)} a year. Every calculator on this site has a field for the letter percentage under “Have the fund’s year-end tax statement?”; enter it once the company has published it.</p>
 

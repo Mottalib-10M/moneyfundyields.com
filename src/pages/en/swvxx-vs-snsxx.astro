@@ -25,7 +25,7 @@ const faqs = [
 ---
 <ToolPage id="swvxx-vs-snsxx" title={title} description={description} crumb="SWVXX vs SNSXX"
   h1="SWVXX vs SNSXX: Schwab prime or Treasury, state by state"
-  lede={`Schwab Prime Advantage against Schwab U.S. Treasury, as filed for ${day(a.yDate)}. Not investment advice.`}
+  lede={`SWVXX (Schwab Prime Advantage) against SNSXX (Schwab U.S. Treasury), as filed for ${day(a.yDate)}. Not investment advice.`}
   faqs={faqs} related={related('fund-swvxx', 'fund-snsxx', 'prime-vs-government-money-market-funds')} sources={src('nmfp', 'rule-2a7', 'ftb-ca', 'pa-pit', 'il-pub101')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SNSXX" b="SWVXX" pick={false} methodHref={METHOD} id="c-ss" />
   <div class="prose prose-slate mt-10 max-w-none">

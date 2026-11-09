@@ -26,7 +26,7 @@ const faqs = [
 ---
 <GuideLayout lang="en" id="seven-day-yield" title={title} description={description} breadcrumbLabel="7-day yield"
   h1="7-day yield: what a money market fund’s headline number measures"
-  intro="The one figure every money fund publishes, read from the filings: how it is built, what it leaves out, and what it pays."
+  intro="The 7-day yield of a money market fund is the one figure every fund publishes. Here it is read from the filings: how it is built, what it leaves out, and what it pays."
   faqs={faqs} related={related('spaxx-vs-fdrxx', 'treasury-bills-vs-money-market-funds', 'money-market-fund-rules')} sources={src('rule-2a7', 'nmfp', 'irs-rp')}>
   <p>The 7-day yield is the income a money market fund earned over the past seven days, after expenses, expressed as an annual rate. It is the number at the top of every fund page. This site starts from it, then ranks funds by what you keep after tax. It is a statement about the past week, not a promise about the next year, and it is before tax.</p>
 
@@ -44,7 +44,7 @@ const faqs = [
   <YieldChart series={[{ label: 'VMFXX', points: HISTORY.VMFXX, color: '#1F5C4A' }, { label: 'VMSXX (municipal)', points: HISTORY.VMSXX, color: '#B45309' }]} caption="Daily 7-day net yields as filed in Form N-MFP." />
   <p>The chart also shows a second pattern. Vanguard’s municipal fund VMSXX swung over a range of {pct(range('VMSXX'))} in the same months, against {pct(range('VMFXX'))} for VMFXX. Municipal money funds hold variable-rate notes whose rates reset weekly on an index that reacts to flows into and out of tax-exempt funds, and to the calendar of tax payments. Their 7-day yield is noisier, and a single week says less about the coming month than it does for a government fund.</p>
 
-  <h2>Comparing the 7-day yield with other rates</h2>
+  <h2>Comparing a money fund’s 7-day yield with other rates</h2>
   <p>The 7-day yield compares cleanly with a Treasury bill’s coupon-equivalent rate, which the Treasury publishes every business day: both are annualized simple rates on a 365-day year. On {day(TBILLS.date)}, the 4-week bill was at {pct(TBILLS.w4)}. A savings account quotes an APY (annual percentage yield), which compounds; put the two on the same basis before comparing: the calculator above shows the effective version of a 7-day yield, and the savings comparison on this site turns the bank’s APY back into a simple rate, so the fund keeps the figure shown in every ranking. The 30-day SEC yield that bond funds and exchange-traded funds publish is a different measure, based on a month of income and on the yield to maturity of the holdings; it is close to a money fund’s 7-day yield for funds that hold only bills, but the two are not the same calculation.</p>
   <p>None of these rates is what you keep. Money fund dividends are taxed as ordinary income, federally and, except for the share from U.S. obligations, by your state. A fund paying {pct(spa.y)} can leave less after tax than one paying a few hundredths less, depending on what it holds. A municipal fund paying {pct(vms.y)} owes no federal tax and has to be compared on a tax-equivalent basis. That is the purpose of the after-tax yield this site computes from the same filed figures.</p>
 

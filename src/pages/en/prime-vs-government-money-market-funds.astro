@@ -27,11 +27,11 @@ const faqs = [
 ---
 <ToolPage id="prime-vs-government-money-market-funds" title={title} description={description} crumb="Prime vs government"
   h1="Prime vs government money market funds after tax"
-  lede={`Averages of the retail share classes in the data, 7-day yields as filed for ${day(spr.yDate)}. Not investment advice.`}
+  lede={`Prime money market funds take a little more credit risk than government funds for more yield, and states tax almost all of a prime fund’s dividend. Averages of the retail share classes in the data, 7-day yields as filed for ${day(spr.yDate)}. Not investment advice.`}
   faqs={faqs} related={related('swvxx-vs-snsxx', 'fund-sprxx', 'money-market-fund-rules')} sources={src('nmfp', 'rule-2a7', 'ftb-ca', 'irs-rp')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SPRXX" b="SPAXX" methodHref={METHOD} id="c-pg" />
   <div class="prose prose-slate mt-10 max-w-none">
-    <h2>A small premium, taxed in full by states</h2>
+    <h2>The prime fund premium over government funds, taxed in full by states</h2>
     <p>The case for a prime fund is a higher yield for a little more credit risk. In the data behind this site {prime.mean > gov.mean ? 'the premium is small' : 'there was no premium at all on average'}. The {prime.n} retail prime share classes averaged a 7-day net yield of {pct(prime.mean)}, against {pct(gov.mean)} for the {gov.n} government classes and {pct(stats[3].mean)} for the Treasury-only ones: simple averages, one figure per class, so a few expensive classes pull each average down. State tax then works against the prime funds, because almost none of their income comes from obligations that states may not tax. Averaged the same way for a single Californian with $120,000 of income, prime classes left {pct(prime.ca)} after tax and government classes {pct(gov.ca)}; in Texas, with no income tax, {pct(prime.tx)} and {pct(gov.tx)}. A government fund in California, Connecticut or New York keeps its edge only if it passed the 50% quarter-end test, which many did not. The calculator compares any two funds in the data; it starts with Fidelity’s prime fund SPRXX against its government fund SPAXX.</p>
   </div>
   <section data-chrome class="prose prose-slate mt-8 max-w-none">

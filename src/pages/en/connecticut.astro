@@ -23,11 +23,11 @@ const faqs = [
 ---
 <ToolPage id="connecticut" title={title} description={description} crumb="Connecticut"
   h1="Connecticut money market fund tax: the 50% test and the rates"
-  lede={`Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, Connecticut rates for tax year 2025. Not tax or investment advice.`}
+  lede={`Connecticut money market fund tax spares the part of a dividend earned on U.S. obligations only if the fund held at least half its assets in them at every quarter end. Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, Connecticut rates for tax year 2025. Not tax or investment advice.`}
   faqs={faqs} related={related('fifty-percent-rule', 'fund-fdlxx', 'fund-snvxx')} sources={src('ct-ps', 'ct-olr', 'nmfp', 'irs-rp')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="FDLXX" b="SNVXX" methodHref={METHOD} defFiling="joint" defState="CT" defIncome={300000} defAmount={200000} id="c-ct" />
   <div class="prose prose-slate mt-10 max-w-none">
-    <h2>Same test as California and New York, lower rates</h2>
+    <h2>Connecticut tax on fund dividends: same test as California and New York, lower rates</h2>
     <p>Connecticut belongs to the small group of states that attach a threshold to the exemption for fund dividends. Its Department of Revenue Services treats the part of a fund’s dividend that comes from U.S. obligations as exempt only when the fund held at least half of its assets in such obligations at the close of each quarter. Below that line, the whole dividend is taxable. Connecticut rates are lower than California’s or New York’s, so the stakes per dollar are smaller, but balances held by Connecticut households are often large. Take a joint return at $300,000 of income with {usd(200000)} in a money fund. Fidelity’s Treasury Only fund FDLXX, which filed {pct(fdl.y)} and held nothing but Treasuries, left {pct(a.afterTaxYield)} after tax, or {usd(a.net)} a year. Schwab Government Money Fund SNVXX, which filed {pct(snv.y)} but held most of its money in repo and stayed below 50% at both quarter ends in the data, left {pct(b.afterTaxYield)}, or {usd(b.net)}. The yields before tax were close; the result after tax was not.</p>
   </div>
   <StateTables st="CT" />

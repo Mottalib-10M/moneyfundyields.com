@@ -16,7 +16,8 @@ if (faqs.length) jsonLd.push(faqSchema(faqs, lang));
 // Page de lecture : date en haut, à droite du fil d'Ariane, sauf si le guide s'ouvre sur un
 // simulateur (< 250 mots avant le premier champ) : elle ne passe jamais au-dessus (RECETTE §8.4, 2026-10-15).
 const corpsRendu = Astro.slots.has('default') ? await Astro.slots.render('default') : '';
-const dateEnHaut = !meneParSimu(`${intro ?? ''} ${resume ?? ''}`, corpsRendu);
+// Le décompte reprend tout ce que check-trame.py lit entre le H1 et le champ, ligne de relecture comprise.
+const dateEnHaut = !meneParSimu(`${intro ?? ''} ${ui.reviewedBy} ${AUTHOR_NAME} · ${ui.editorialPolicy} ${resume ?? ''}`, corpsRendu);
 ---
 <PageLayout title={title} description={description} lang={lang} jsonLd={jsonLd} faqs={faqs} related={related} sources={sources} breadcrumbs={[{ label: breadcrumbLabel }]} noindex={noindex} showAuthor={showAuthor} dateEnHaut={dateEnHaut}>
   <article>

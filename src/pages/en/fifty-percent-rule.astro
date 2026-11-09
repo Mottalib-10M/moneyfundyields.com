@@ -31,7 +31,7 @@ const faqs = [
 ---
 <GuideLayout lang="en" id="fifty-percent-rule" title={title} description={description} breadcrumbLabel="50% rule"
   h1="The 50% rule: which money funds keep their state tax exemption"
-  intro="California, Connecticut and New York leave untaxed the part of a fund dividend earned on U.S. government debt only if the fund passes a test at each quarter end: at least half its money in that debt. The filings show who passes."
+  intro="Under the 50% rule for money market funds, California, Connecticut and New York leave untaxed the part of a dividend earned on U.S. government debt only if the fund held at least half its money in that debt at each quarter end. The filings show who passes."
   faqs={faqs} related={related('california', 'new-york', 'connecticut')} sources={src('ftb-ca', 'ny-it201i', 'ct-ps', 'nmfp', 'fhlb-statute')}>
   <p>Federal law forbids states to tax interest on obligations of the United States, and a mutual fund that earns such interest can pass the exemption to its shareholders. Most states let it through in proportion: if 60% of a fund’s income came from Treasuries, 60% of its dividend is exempt. California, Connecticut and New York add a condition. The fund must have held at least 50% of its total assets in qualifying obligations at the close of each quarter of its taxable year. A fund that meets the test passes through its exempt share as usual. A fund that misses it at even one quarter end passes through nothing, and the whole dividend for the year is taxed by those three states. The rule turns a gradual question into a cliff. In the {govs.length} retail government and Treasury share classes behind this site, {fails.length} held less than 50% in qualifying obligations at the {quarterLabel(q1)} or {quarterLabel(q2)} quarter end, {bn(failAssets)} of assets in all, and {close.length} were within five points of the line on one of the two dates.</p>
 
@@ -41,7 +41,7 @@ const faqs = [
   <div data-simulateur-secondaire><MiniSim client:load kind="fifty" href="/en/" /></div>
   </details>
 
-  <h2>What counts, and what does not</h2>
+  <h2>What counts toward the money fund 50% rule, and what does not</h2>
   <p>The test counts obligations whose interest the state may not tax. Treasury bills, notes and bonds count. So does debt of a short list of agencies that Congress exempted from state tax: the Federal Home Loan Banks, whose statute shields their notes from state income tax, the Farm Credit Banks and the Tennessee Valley Authority. Fannie Mae and Freddie Mac securities do not count, though they are government-sponsored, because their charters do not carry the exemption. Repurchase agreements (repo) do not count either, and this is where most government funds lose ground. In a repo, the fund lends cash overnight to a bank or dealer and takes Treasuries or agency securities as collateral. The interest comes from the borrower, so it is not interest on a U.S. obligation, and the asset on the fund’s books is the loan, not the collateral. A government fund can therefore hold nothing but government paper in the sense of rule 2a-7 (the federal rule for money funds) and still fall far below 50% for state tax purposes.</p>
   <p>The holdings schedule in each Form N-MFP report is detailed enough to run the test: every security is listed with its issuer, its category and its value. This site classes each holding as Treasury, exempt agency, other agency, repo by type of collateral, municipal or other, and sums the first two as a share of total holdings at each quarter-end report.</p>
 

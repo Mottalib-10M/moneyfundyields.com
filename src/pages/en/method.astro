@@ -15,7 +15,7 @@ const sources = src('nmfp', 'nmfp-archive', 'rule-2a7', 'irs-rp', 'irs-niit', 'f
 <PageLayout title={title} description={description} lang={lang} jsonLd={[webPageSchema({ name: title, description, path, lang }), breadcrumbSchema([{ name: 'Home', path: route('home', lang) }, { name: 'Method', path }])]} breadcrumbs={[{ label: 'Method' }]} sources={sources}>
   <article class="prose prose-slate max-w-none">
     <h1>Data and method</h1>
-    <p>Every figure on this site comes from two kinds of public documents: the monthly reports that money market funds file with the Securities and Exchange Commission on Form N-MFP, and the tax schedules and rules published by the IRS and by state tax agencies. This page says how they are read and combined, how fresh they are, and what they cannot tell you.</p>
+    <p>The method behind every figure on this site starts from two kinds of public documents: the monthly reports that money market funds file with the Securities and Exchange Commission on Form N-MFP, and the tax schedules and rules published by the IRS and by state tax agencies. This page says how they are read and combined, how fresh they are, and what they cannot tell you.</p>
 
     <h2>Fund data: Form N-MFP, as filed</h2>
     <p>Each registered money market fund files Form N-MFP within five business days after the end of every month. The report lists every holding with its issuer, category, maturity and value; the fund’s weighted average maturity and life; the assets, minimum initial investment and 7-day net yield of each share class for every business day of the month; and the fund’s gross 7-day yield. The Commission publishes the reports as filed, one by one in its archive, and as monthly data sets.</p>
@@ -39,7 +39,7 @@ const sources = src('nmfp', 'nmfp-archive', 'rule-2a7', 'irs-rp', 'irs-niit', 'f
     <h2>Freshness and updates</h2>
     <p>The yields are those of the last business day of the reported month. Reports arrive in the first week of the following month, so on the day of an update the figures are about a week old, and just before the next one about five weeks old. The update is run by hand: download, rebuild, checks, publication. There is no automatic daily feed, and this site does not promise a fixed date. The date of the latest update appears at the bottom of every page. Treasury bill rates come from the Treasury’s daily bill rates and carry their own date.</p>
 
-    <h2>What this site does not do</h2>
+    <h2>What this method does not do</h2>
     <p>It does not recommend funds, does not say which fund to buy, and is not an investment adviser. It ranks past yields as filed and applies published tax rules to the situation you type. It is not affiliated with the Securities and Exchange Commission, the IRS, any state or any fund company, and it receives nothing from them. Errors can be reported through the <a href={route('contact', lang)}>contact page</a>; corrections are listed in the <a href={route('editorial', lang)}>editorial policy</a>.</p>
   </article>
 </PageLayout>

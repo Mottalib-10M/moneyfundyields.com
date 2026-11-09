@@ -1,0 +1,34 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import StateTables from '../../components/StateTables.astro';
+import { fund, pct, usd, day, META, YIELD_DAYS } from '../../lib/data';
+import { afterTax } from '../../lib/engine/tax';
+import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const swv = fund('SWVXX'), sns = fund('SNSXX');
+const sit = { amount: 50000, state: 'PA', filing: 'single' as const, income: 120000 };
+const a = afterTax(swv, sit), b = afterTax(sns, sit);
+const saved = sns.y * 0.0307;
+const title = fitTitle(['Pennsylvania Money Market Fund Tax: 3.07% and Exemption', 'Pennsylvania Money Market Fund Tax: Flat 3.07%, Exempt Share']);
+const description = fitDesc([
+  `Pennsylvania money market fund tax: a flat 3.07% on dividends, minus the share from U.S. obligations. See which funds keep more after state and federal tax.`,
+  `Pennsylvania money market fund tax: a flat 3.07% on dividends, minus the share from U.S. obligations. See which funds keep the most after Pennsylvania and federal tax.`,
+]);
+const faqs = [
+  { q: 'Does Pennsylvania tax money market fund dividends?', a: `Yes, at the flat personal income tax rate of 3.07%, as dividends. The part of a fund’s dividend that comes from obligations of the United States is not taxable, according to the Department of Revenue’s guide on dividends, and there is no 50% threshold for the fund to meet.` },
+  { q: 'Is a Treasury fund worth it in Pennsylvania?', a: `The state exemption is worth 3.07% of the dividend, about ${pct(saved, 3)} of yield on a fund paying ${pct(sns.y)}. That is small enough that a prime or government fund with a higher yield can keep more${a.net >= b.net ? ', as SWVXX did against SNSXX on the filed figures for a single filer at $120,000' : '; on the filed figures, though, SNSXX still kept more than SWVXX for a single filer at $120,000'}.` },
+  { q: 'Do Pennsylvania local taxes apply to fund dividends?', a: `Local earned income taxes in Pennsylvania generally apply to earned income such as wages and business profits, not to dividends and interest. This site applies only the state rate. Check with your local tax collector if you have a particular situation, such as a school district with a personal income tax.` },
+];
+---
+<ToolPage id="pennsylvania" title={title} description={description} crumb="Pennsylvania"
+  h1="Pennsylvania money market fund tax: flat 3.07% and the exempt share"
+  lede={`Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, Pennsylvania rate for tax year 2025. Not tax or investment advice.`}
+  faqs={faqs} related={related('swvxx-vs-snsxx', 'prime-vs-government-money-market-funds', 'us-government-obligations-percentage')} sources={src('pa-pit', 'nmfp', 'irs-rp')}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SWVXX" b="SNSXX" methodHref={METHOD} defState="PA" id="c-pa" />
+  <div class="prose prose-slate mt-10 max-w-none">
+    <h2>A low flat rate shrinks the value of the exemption</h2>
+    <p>Pennsylvania taxes money market fund dividends at the same flat 3.07% it applies to all classes of personal income, and lets residents leave out the part of a dividend that comes from obligations of the United States. There is no quarter-end test: a fund with 40% of its assets in Treasuries passes 40% of its income free of state tax. That sounds generous, but the low rate makes the exemption worth little. On a Treasury fund paying {pct(sns.y)}, escaping a 3.07% tax adds about {pct(saved, 3)} of yield, or {usd(saved * 50000)} a year on {usd(50000)}. So in Pennsylvania the ranking after tax follows the ranking before tax more closely than in high-tax states. On the filed figures, for a single filer with $120,000 of taxable income, the Schwab prime fund SWVXX left {pct(a.afterTaxYield)} after Pennsylvania and federal tax and the Schwab Treasury fund SNSXX {pct(b.afterTaxYield)}: {a.net >= b.net ? 'the prime fund’s higher yield survived the state tax' : 'the Treasury fund still kept more'}. Federal tax, at {pct(a.fedRate + a.niit, 0)} on that income, takes far more than the state does.</p>
+  </div>
+  <StateTables st="PA" />
+</ToolPage>

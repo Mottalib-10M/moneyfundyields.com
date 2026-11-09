@@ -1,0 +1,33 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import StateTables from '../../components/StateTables.astro';
+import { FUNDS, fund, pct, usd, day, META, YIELD_DAYS, PARAMS } from '../../lib/data';
+import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const names = Object.values(PARAMS.noTaxNames as Record<string, string>);
+const taxable = FUNDS.filter((f) => !f.k.endsWith('muni'));
+const best = [...taxable].sort((a, b) => b.y - a.y)[0];
+const swv = fund('SWVXX'), vus = fund('VUSXX');
+const title = fitTitle(['Money Market Funds in No Income Tax States: Yield Ranking', 'Money Market Funds in States With No Income Tax: Ranking']);
+const description = fitDesc([
+  `Money market funds in Texas, Florida and seven other states with no income tax: only federal tax applies, so the 7-day yield as filed sets the ranking.`,
+  `Money market funds in Texas, Florida and seven other states without income tax: only federal tax applies, so the 7-day yield as filed decides the ranking after tax.`,
+]);
+const faqs = [
+  { q: 'Which states have no tax on money market fund dividends?', a: `${names.join(', ')}. New Hampshire taxed interest and dividends until its tax was repealed for tax periods starting in 2025, and Washington taxes some capital gains but not dividends. In these nine states a money fund dividend bears federal tax only.` },
+  { q: 'Is a Treasury fund pointless in Texas or Florida?', a: `For tax purposes, yes: the state exemption that makes Treasury funds attractive elsewhere is worth nothing where there is no state income tax. Some investors still prefer them for the credit quality of Treasuries. On the filed yields VUSXX paid ${pct(vus.y)} and SWVXX ${pct(swv.y)}.` },
+  { q: 'Do municipal money funds make sense without a state tax?', a: `Only in high federal brackets. A national municipal fund’s dividend is free of federal tax, and with no state tax there is nothing else to save. Divide its yield by one minus your federal rate and compare with a taxable fund; the calculator does this when you choose a municipal fund.` },
+];
+---
+<ToolPage id="no-income-tax-states" title={title} description={description} crumb="No income tax states"
+  h1="Money market funds in states with no income tax"
+  lede={`Yields as filed for ${YIELD_DAYS}, federal brackets for 2026. Not tax or investment advice.`}
+  faqs={faqs} related={related('prime-vs-government-money-market-funds', 'fund-swvxx', 'municipal-money-market-funds')} sources={src('nmfp', 'irs-rp', 'irs-niit')}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SWVXX" b="VUSXX" methodHref={METHOD} defState="TX" id="c-nt" />
+  <div class="prose prose-slate mt-10 max-w-none">
+    <h2>When only federal tax applies, yield decides</h2>
+    <p>In {names.slice(0, -1).join(', ')} and {names[names.length - 1]}, there is no state tax on interest or dividends, so the question that fills the other pages of this site disappears. Every taxable money fund pays federal income tax at your marginal rate, plus the 3.8% net investment income tax above the thresholds, and nothing else. Whether the fund held Treasuries, repo or bank paper, and whether it passed a 50% test, changes nothing about the tax. The ranking after tax is then the ranking by 7-day yield: the highest-yielding taxable share class in the data, {best.t} at {pct(best.y)}, is also first among taxable funds after tax for every reader in these states. What remains are the choices tax does not settle: credit risk (prime funds lend to banks and companies, Treasury funds to the government), the possibility of liquidity fees in retail prime funds, minimum investments, and which funds your brokerage offers. A difference of 0.20 points of yield on {usd(100000)} is {usd(200)} a year before federal tax. The table below ranks the top fifteen share classes; the calculator compares any two.</p>
+  </div>
+  <StateTables st="TX" />
+</ToolPage>

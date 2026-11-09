@@ -1,0 +1,29 @@
+---
+/**
+ * Tableau du contenu. Chaque cellule porte le nom de sa colonne (`data-label`) : sous 768 px, un
+ * tableau qui déborde devient une pile de fiches (lib/tableaux.ts, testeurs naïfs du 2026-11-08).
+ * `empile` : 'auto' (défaut : fiches dès 3 colonnes, ou à 2 colonnes s'il déborde), true (fiches toujours sous 768 px),
+ * false (jamais : il défile, avec l'ombre). Un rang ou un nombre seul en 1re colonne cède le titre de la fiche
+ * à la colonne suivante (`ficheTitre`, `data-titre`).
+ */
+import { attributsTableau, etiquettes, ficheTitre } from '../lib/tableaux';
+interface Props { headers: string[]; rows: Array<Array<string | number>>; caption?: string; align?: Array<'l' | 'r'>; highlightRow?: number; empile?: boolean | 'auto' }
+const { headers, rows, caption, align = [], highlightRow = -1, empile = 'auto' } = Astro.props;
+const { classe, pasDeFiches } = attributsTableau(empile, headers.length);
+const fiche = ficheTitre(headers, rows); // un rang ou un nombre seul en 1re colonne cède le titre de la fiche à la suivante
+---
+<div class="overflow-x-auto">
+  <table class={`w-full text-sm ${classe}`} data-pas-de-fiches={pasDeFiches ? '' : undefined} data-titre={fiche.titre ? '2' : undefined}>
+    {caption && <caption class="mb-2 text-left text-sm text-navy-500">{caption}</caption>}
+    <thead>
+      <tr>{headers.map((h, i) => <th scope="col" class={`border-b border-navy-200 bg-navy-50 px-3 py-2 font-semibold text-navy-900 ${align[i] === 'r' ? 'text-right' : 'text-left'}`}>{h}</th>)}</tr>
+    </thead>
+    <tbody>
+      {rows.map((r, ri) => { const lab = etiquettes(headers, r.length, fiche); return (
+        <tr class={ri === highlightRow ? 'bg-accent-50 font-semibold' : ri % 2 ? 'bg-navy-50/40' : ''}>
+          {r.map((c, i) => <td data-label={lab[i]} class={`tabular-nums border-b border-navy-100 px-3 py-2 text-navy-700 ${align[i] === 'r' ? 'text-right' : 'text-left'}`}>{c}</td>)}
+        </tr>
+      ); })}
+    </tbody>
+  </table>
+</div>

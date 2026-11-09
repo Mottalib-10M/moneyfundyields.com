@@ -1,0 +1,35 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import FundPair from '../../components/FundPair.astro';
+import YieldChart from '../../components/YieldChart.astro';
+import { fund, pct, usd, day, drag, HISTORY } from '../../lib/data';
+import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const a = fund('SPAXX'), b = fund('FDRXX');
+const dA = drag(a) ?? 0, dB = drag(b) ?? 0;
+const yearly = (b.y - a.y) * 100000;
+const title = fitTitle(['SPAXX vs FDRXX: Two Fidelity Government Funds Compared', 'SPAXX vs FDRXX: Fidelity Government Funds After Tax']);
+const description = fitDesc([
+  `SPAXX vs FDRXX as filed: ${pct(a.y)} against ${pct(b.y)}, with near-identical holdings. The gap is expenses; see what it is worth in dollars a year after your taxes.`,
+  `SPAXX vs FDRXX as filed: ${pct(a.y)} against ${pct(b.y)}, with near-identical holdings. The gap is expenses; see what it is worth to you in dollars after tax.`,
+]);
+const faqs = [
+  { q: 'Is FDRXX the same fund as SPAXX?', a: `No, they are two separate Fidelity funds, Government Money Market and Government Cash Reserves, filed by different trusts. Their holdings are similar: Treasuries, Federal Home Loan Bank and Farm Credit debt, and repo. Their expenses differ, which the filed gross and net yields measure at ${pct(dA)} and ${pct(dB)}.` },
+  { q: 'Why is SPAXX the default in my Fidelity account?', a: `Fidelity uses Government Money Market (SPAXX) as the core position of many brokerage accounts, where uninvested cash sits automatically. Other funds, FDRXX among them, can be bought with that cash like any other mutual fund. Which core options an account offers is set by Fidelity, not by the filing.` },
+  { q: 'Do SPAXX and FDRXX pass the California 50% test?', a: `Both did at the June and September quarter ends in the data: SPAXX held ${pct(a.q['2026-06'], 1)} and ${pct(a.q['2026-09'], 1)} in U.S. obligations, FDRXX ${pct(b.q['2026-06'], 1)} and ${pct(b.q['2026-09'], 1)}. FDRXX’s margin was thinner, so its December figure matters more, and the year-end letter settles the question for a return.` },
+];
+---
+<ToolPage id="spaxx-vs-fdrxx" title={title} description={description} crumb="SPAXX vs FDRXX"
+  h1="SPAXX vs FDRXX: what the expense gap costs after tax"
+  lede={`Fidelity Government Money Market against Fidelity Government Cash Reserves, as filed for ${day(a.yDate)}. Not investment advice.`}
+  faqs={faqs} related={related('fund-spaxx', 'fund-fdrxx', 'seven-day-yield')} sources={src('nmfp', 'rule-2a7', 'ftb-ca', 'irs-rp')}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="FDRXX" b="SPAXX" pick={false} methodHref={METHOD} id="c-sf" />
+  <div class="prose prose-slate mt-10 max-w-none">
+    <h2>A difference of cost, not of portfolio</h2>
+    <p>Put the two holdings schedules next to each other and they read alike: Treasury bills and notes, floating-rate notes of the Federal Home Loan Banks and Farm Credit Banks, and repurchase agreements backed by Treasuries and agency securities. The yields do not read alike. The filings give each fund’s gross 7-day yield, what the portfolio earned before expenses, and the net yield of each share class. For SPAXX the gross was {pct(a.g ?? 0)} and the net {pct(a.y)}; for FDRXX the gross was {pct(b.g ?? 0)} and the net {pct(b.y)}. Expenses therefore took about {pct(dA)} from SPAXX and {pct(dB)} from FDRXX. On $100,000 the net yield gap is worth about {usd(yearly)} a year before tax, and roughly two thirds of that after federal and state tax for a typical reader, which the calculator above works out for your income.</p>
+    <p>Because both funds hold a similar share of exempt obligations, state tax hardly moves the comparison: whatever exemption one gets, the other gets nearly the same. The one place where they part is the quarter-end test of California, Connecticut and New York, where FDRXX sat closer to the 50% line than SPAXX. A fund that dips under it at a single quarter end loses the exemption for the year in those states.</p>
+  </div>
+  <YieldChart series={[{ label: 'SPAXX', points: HISTORY.SPAXX, color: '#1F5C4A' }, { label: 'FDRXX', points: HISTORY.FDRXX, color: '#B45309' }]} caption="Daily 7-day net yields as filed." />
+  <FundPair tickers={['SPAXX', 'FDRXX']} heading="SPAXX and FDRXX side by side" />
+</ToolPage>

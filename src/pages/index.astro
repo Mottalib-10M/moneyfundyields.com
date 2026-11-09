@@ -1,0 +1,44 @@
+---
+// Racine : redirige vers la langue par défaut. Page noindex, mais elle doit rester
+// lisible et navigable sans JS — un visiteur d'une autre langue du site doit pouvoir
+// atteindre sa version depuis ici.
+import { DEFAULT_LOCALE, LOCALES, route } from '../i18n/routes';
+import { SITE_NAMES, SITE_URL } from '../data/site-config';
+
+const target = route('home', DEFAULT_LOCALE);
+const title = SITE_NAMES[DEFAULT_LOCALE];
+const languageName = (loc: string) => {
+  const name = new Intl.DisplayNames([loc], { type: 'language' }).of(loc) ?? loc;
+  return name.charAt(0).toUpperCase() + name.slice(1);
+};
+const links = LOCALES.map((loc) => ({
+  href: route('home', loc),
+  label: `${SITE_NAMES[loc] ?? title} (${languageName(loc)})`,
+}));
+---
+<!doctype html>
+<html lang={DEFAULT_LOCALE}>
+  <head>
+    <meta charset="utf-8" />
+    <title>{title}</title>
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <link rel="canonical" href={`${SITE_URL}${target}`} />
+    <meta name="robots" content="noindex" />
+    <!-- La racine doit declarer sa favicon comme n'importe quelle page. Le robot
+         de Google qui collecte les favicons interroge d'abord la racine du
+         domaine et /favicon.ico ; une racine muette le laisse repartir les mains
+         vides, et Search Console affiche une icone generique pendant des
+         semaines. Constate le 2026-09-26 sur huit sites du portefeuille. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script is:inline define:vars={{ locales: LOCALES, target }}>
+      const nav = (navigator.language || '').slice(0, 2).toLowerCase();
+      const m = locales.find((l) => l === nav);
+      location.replace(m ? `/${m}/` : target);
+    </script>
+  </head>
+  <body>
+    {links.map((l, i) => <>{i > 0 && ' · '}<a href={l.href}>{l.label}</a></>)}
+  </body>
+</html>

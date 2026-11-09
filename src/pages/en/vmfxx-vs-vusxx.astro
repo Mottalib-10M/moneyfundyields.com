@@ -1,0 +1,37 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import FundPair from '../../components/FundPair.astro';
+import YieldChart from '../../components/YieldChart.astro';
+import { fund, pct, usd, day, HISTORY } from '../../lib/data';
+import { afterTax } from '../../lib/engine/tax';
+import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const a = fund('VMFXX'), b = fund('VUSXX');
+const gapBp = Math.round((b.y - a.y) * 10000);
+const s = (st: string, inc = 120000) => ({ amount: 50000, state: st, filing: 'single' as const, income: inc });
+const caA = afterTax(a, s('CA')), caB = afterTax(b, s('CA')), txA = afterTax(a, s('TX')), txB = afterTax(b, s('TX'));
+const title = fitTitle(['VMFXX vs VUSXX: Which Vanguard Fund Keeps More After Tax', 'VMFXX vs VUSXX: Vanguard Federal or Treasury After Tax']);
+const description = fitDesc([
+  `VMFXX vs VUSXX as filed: ${pct(a.y)} against ${pct(b.y)}. See how much of each dividend your state can tax and which of the two Vanguard funds leaves more for you.`,
+  `VMFXX vs VUSXX as filed: ${pct(a.y)} against ${pct(b.y)}. See how much of each dividend your state can tax and which Vanguard fund leaves you more after tax.`,
+]);
+const faqs = [
+  { q: 'Should I switch from VMFXX to VUSXX?', a: `That is your decision; this site gives no advice. The arithmetic: on the filed yields the two were ${Math.abs(gapBp)} basis points apart, and VUSXX’s dividend escapes state tax entirely while about ${pct(1 - a.usob, 0)} of VMFXX’s holdings earn taxable income. In a state with income tax the difference usually favors VUSXX; in Texas it is a wash.` },
+  { q: 'Can VUSXX be the settlement fund of a Vanguard account?', a: `Vanguard brokerage accounts use Vanguard Federal (VMFXX) as the settlement fund. VUSXX can be bought and sold like any other fund in the account, but cash from trades lands in the settlement fund first, so holding VUSXX means moving money by hand or by a standing instruction.` },
+  { q: 'Why does VMFXX have repo if it is a federal fund?', a: `Repurchase agreements backed by Treasuries count as government securities under rule 2a-7 and give the fund daily cash. VMFXX held ${pct(a.comp.tsyRepo ?? 0, 0)} in Treasury repo at the end of the reported month. Their interest is paid by the bank that borrowed, so states tax it.` },
+];
+---
+<ToolPage id="vmfxx-vs-vusxx" title={title} description={description} crumb="VMFXX vs VUSXX"
+  h1="VMFXX vs VUSXX after federal and state tax"
+  lede={`Vanguard Federal against Vanguard Treasury, 7-day yields as filed for ${day(a.yDate)}. Not investment advice.`}
+  faqs={faqs} related={related('fund-vmfxx', 'fund-vusxx', 'fifty-percent-rule')} sources={src('nmfp', 'ftb-ca', 'ny-it201i', 'nj-git5', 'irs-rp')}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VUSXX" b="VMFXX" pick={false} methodHref={METHOD} id="c-vv" />
+  <div class="prose prose-slate mt-10 max-w-none">
+    <h2>Same family, different tax</h2>
+    <p>Vanguard Federal and Vanguard Treasury are run by the same team and pay within a few hundredths of a point of each other: {pct(a.y)} and {pct(b.y)} on the last filed day, a gap of {Math.abs(gapBp)} basis points (hundredths of a percentage point) {gapBp >= 0 ? 'in favor of the Treasury fund' : 'in favor of the federal fund'}. The difference that matters is underneath. VUSXX holds Treasury bills and notes and nothing else, so its whole dividend is interest on U.S. obligations, which states may not tax. VMFXX holds Treasuries too, but also debt of the Federal Home Loan Banks and Farm Credit Banks, which is exempt as well, and a large block of repurchase agreements, which is not. For a single Californian at $120,000 of income that leaves {pct(caA.afterTaxYield)} for VMFXX against {pct(caB.afterTaxYield)} for VUSXX, or {usd(Math.abs(caB.net - caA.net))} a year on $50,000. In Texas, with no state tax, the figures are {pct(txA.afterTaxYield)} and {pct(txB.afterTaxYield)}.</p>
+    <p>The holdings estimate overstates VMFXX’s exempt share. Vanguard’s letter for 2024 put the share of VMFXX dividends from U.S. government obligations at 59.87%, while the October holdings suggest about {pct(a.usob, 0)}. The year-end letter is the figure that goes on a state return; the calculator accepts it under “Have the fund’s year-end tax statement?”, and entering 59.87 widens the gap in favor of VUSXX.</p>
+  </div>
+  <YieldChart series={[{ label: 'VMFXX', points: HISTORY.VMFXX, color: '#1F5C4A' }, { label: 'VUSXX', points: HISTORY.VUSXX, color: '#B45309' }]} caption="Daily 7-day net yields as filed." />
+  <FundPair tickers={['VMFXX', 'VUSXX']} heading="VMFXX and VUSXX side by side" />
+</ToolPage>

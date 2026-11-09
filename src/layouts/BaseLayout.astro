@@ -1,0 +1,195 @@
+---
+import { displayDate } from '../lib/format';
+import { SCRIPT_TABLEAUX } from '../lib/tableaux';
+import '../styles/global.css';
+import ConsentBanner from '../components/ConsentBanner.astro';
+import { consentStrings } from '../data/consent-strings';
+import { SITE_URL, YEAR, LAST_UPDATED, BING_VERIFY_CODE, GOOGLE_VERIFY_CODE, CONSENT_MODE, GA4_ID, CLARITY_ID, THEME_COLOR, AUTHOR_NAME, SITE_NAMES, BRAND_ACCENT, LANG_TAGS, OG_LOCALES, LOGO_SYMBOL } from '../data/site-config';
+import { t } from '../i18n/ui';
+import { altPaths, route, LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n/routes';
+import { navCategories, navDirect, footerColumns, popularLinks } from '../i18n/nav';
+
+interface BreadcrumbItem { label: string; href?: string }
+interface Props { title: string; description: string; lang: Locale; canonical?: string; ogImage?: string; noindex?: boolean; jsonLd?: string[]; breadcrumbs?: BreadcrumbItem[] }
+const { title, description, lang, canonical, ogImage, noindex = false, jsonLd = [], breadcrumbs = [] } = Astro.props;
+const ui = t(lang);
+const pathname = Astro.url.pathname;
+const canonicalUrl = canonical ?? `${SITE_URL}${pathname}`;
+const ogImageUrl = ogImage ?? `${SITE_URL}/og-${lang}.png`;
+const alts = altPaths(pathname);
+const homeHref = route('home', lang);
+// Nom du site = mots du domaine ; BRAND_ACCENT (une partie du nom) s'affiche en couleur dans l'en-tete.
+const marque = (() => { const nom = SITE_NAMES[lang]; const i = BRAND_ACCENT ? nom.lastIndexOf(BRAND_ACCENT) : -1; return i < 0 ? { avant: nom, accent: '', apres: '' } : { avant: nom.slice(0, i), accent: BRAND_ACCENT, apres: nom.slice(i + BRAND_ACCENT.length) }; })();
+const cats = navCategories(lang); const direct = navDirect(lang); const footerCols = footerColumns(lang); const popular = popularLinks(lang);
+const otherLocales = LOCALES.filter((l) => l !== lang);
+// Un emplacement passé sous condition ({cond && <p slot=…>}) compte comme présent pour
+// Astro.slots.has : on regarde ce qu'il rend, sinon une rangée vide de 13 px s'ajoute (/en/).
+const crumbAside = Astro.slots.has('crumb-aside') ? (await Astro.slots.render('crumb-aside')).trim() : '';
+---
+<!doctype html>
+<html lang={LANG_TAGS[lang]}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta name="theme-color" content={THEME_COLOR} />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-snippet:-1, max-image-preview:large'} />
+    <meta name="author" content={AUTHOR_NAME} />
+    {BING_VERIFY_CODE && <meta name="msvalidate.01" content={BING_VERIFY_CODE} />}
+    {GOOGLE_VERIFY_CODE && <meta name="google-site-verification" content={GOOGLE_VERIFY_CODE} />}
+    {alts && LOCALES.length > 1 && (<>
+      {LOCALES.map((l) => <link rel="alternate" hreflang={LANG_TAGS[l]} href={`${SITE_URL}${alts[l]}`} />)}
+      <link rel="alternate" hreflang="x-default" href={`${SITE_URL}${alts[DEFAULT_LOCALE]}`} />
+    </>)}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+    <meta property="og:locale" content={OG_LOCALES[lang]} />
+    <meta property="og:site_name" content={SITE_NAMES[lang]} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Le .ico reste necessaire : plusieurs agregateurs et le collecteur de
+         favicons de Google le demandent a la racine avant de lire le HTML. -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    {jsonLd.map((ld) => <script type="application/ld+json" set:html={ld} />)}
+    {/* GA4, régime 'none' (décision de l'éditeur du 2026-10-17, RECETTE §15.6) : Google Analytics 4
+         normal, avec cookies, SANS bandeau. Consentement par défaut : mesure d'audience accordée
+         (analytics_storage 'granted'), publicité refusée (ad_storage, ad_user_data, ad_personalization
+         'denied'), aucune lecture de localStorage. Cookies _ga et _ga_<ID> limités à 390 jours
+         (13 mois au plus, recommandation CNIL) et non prolongés à chaque visite (cookie_update false) ;
+         signaux Google et personnalisation publicitaire coupés. Les pages légales le disent
+         (scripts/gen-legal-pages.py). L'adresse envoyée à GA4 est sans paramètres (page_location) : les
+         saisies qu'un lien de partage porte dans l'adresse ne partent pas chez Google. Contrôle :
+         check-cookies.py. */}
+    {/* Chargement différé (audit Lighthouse du 2026-10-28 : GTM seul coûtait 0,5 à 2,4 s de TBT
+         mobile, Clarity 0,4 s) : gtag.js et Clarity partent à la première interaction (défilement,
+         toucher, clic, touche) ou 6 s après le chargement, hors de la fenêtre où Lighthouse mesure le
+         blocage. Les appels gtag() faits avant restent dans dataLayer et partent avec le script. */}
+    {CONSENT_MODE === 'none' && (GA4_ID || CLARITY_ID) && (
+      <script is:inline set:html={`window.__differer=function(u){var f=0,E=['scroll','pointerdown','keydown','touchstart'];function g(){if(f)return;f=1;E.forEach(function(e){removeEventListener(e,g)});var s=document.createElement('script');s.async=true;s.src=u;document.head.appendChild(s);}E.forEach(function(e){addEventListener(e,g,{once:true,passive:true})});if(document.readyState==='complete')setTimeout(g,6000);else addEventListener('load',function(){setTimeout(g,6000)});};`} />
+    )}
+    {GA4_ID && CONSENT_MODE === 'none' && (<>
+      <script is:inline set:html={`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('consent','default',{analytics_storage:'granted',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',functionality_storage:'granted',security_storage:'granted'});`} />
+      <script is:inline set:html={`window.__differer('https://www.googletagmanager.com/gtag/js?id=${GA4_ID}');`} />
+      <script is:inline set:html={`gtag('js',new Date());gtag('config','${GA4_ID}',{anonymize_ip:true,page_location:location.origin+location.pathname,cookie_expires:33696000,cookie_update:false,allow_google_signals:false,allow_ad_personalization_signals:false});`} />
+    </>)}
+    {/* Régimes 'opt-in' / 'notice' (anciens) : GA4 suit le choix enregistré dans consent-choice. */}
+    {GA4_ID && CONSENT_MODE !== 'none' && (<>
+      <script is:inline set:html={`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;(function(){var d='${CONSENT_MODE === 'opt-in' ? 'denied' : 'granted'}';var c=null;try{c=localStorage.getItem('consent-choice');}catch(e){}var v=(c==='granted'||(c===null&&d==='granted'))?'granted':'denied';gtag('consent','default',{ad_storage:v,analytics_storage:v,ad_user_data:v,ad_personalization:v,functionality_storage:'granted',security_storage:'granted',wait_for_update:500});})();`} />
+      <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}></script>
+      <script is:inline set:html={`gtag('js',new Date());gtag('config','${GA4_ID}',{anonymize_ip:true});`} />
+    </>)}
+    {/* Régime 'none' (règle du 2026-10-06, RECETTE §15.6) : aucun bandeau, aucun cookie Clarity
+         (seul GA4 en dépose, depuis la décision du 2026-10-17, quand GA4_ID est renseigné).
+         Clarity est chargé en mode sans consentement : le signal consentv2 « denied » est mis
+         en file AVANT le script, donc Clarity ne pose aucun cookie (_clck, _clsk, MUID, CLID),
+         donne un identifiant par page vue et ne relie pas les sessions. Mesure technique et
+         anonyme de la stabilité (erreurs, performances, clics inopérants), contenu masqué. */}
+    {CLARITY_ID && CONSENT_MODE === 'none' && (
+      <script is:inline set:html={`(function(){window.clarity=window.clarity||function(){(window.clarity.q=window.clarity.q||[]).push(arguments);};window.clarity('consentv2',{ad_Storage:'denied',analytics_Storage:'denied'});window.__differer('https://www.clarity.ms/tag/${CLARITY_ID}');})();`} />
+    )}
+    {/* Régimes 'opt-in' / 'notice' (anciens) : Clarity ne se charge qu'avec un choix favorable
+         (ou par défaut en 'notice'). Sans cela, seule une file d'attente vide existe. */}
+    {CLARITY_ID && CONSENT_MODE !== 'none' && (
+      <script is:inline set:html={`(function(){var d='${CONSENT_MODE === 'opt-in' ? 'denied' : 'granted'}';var c=null;try{c=localStorage.getItem('consent-choice');}catch(e){}window.clarity=window.clarity||function(){(window.clarity.q=window.clarity.q||[]).push(arguments);};window.__clarityLoad=function(){if(window.__clarityOn)return;window.__clarityOn=true;var s=document.createElement('script');s.async=true;s.src='https://www.clarity.ms/tag/${CLARITY_ID}';document.head.appendChild(s);};if(c==='granted')window.clarity('consentv2',{ad_Storage:'denied',analytics_Storage:'granted'});if(c==='granted'||(c===null&&d==='granted'))window.__clarityLoad();})();`} />
+    )}
+  </head>
+  <body class="min-h-screen bg-white text-navy-900 antialiased" data-clarity-mask="true">
+    <a href="#main-content" class="skip-link">{ui.skipToContent}</a>
+    <header>
+    <nav class="fixed top-0 z-50 w-full border-b border-navy-200 bg-white" aria-label={ui.mainNav}>
+      <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+        <a href={homeHref} class="shrink-0 whitespace-nowrap flex items-center gap-2 font-bold text-navy-900">
+          <img src="/logo.svg" class="h-8 w-8" width="32" height="32" alt="" />
+          <span>{marque.avant}{marque.accent && <span class="text-accent-500">{marque.accent}</span>}{marque.apres}</span>
+        </a>
+        <div class="hidden items-center gap-1 lg:flex">
+          {cats.map((cat, idx) => (
+            <div class="nav-dropdown relative">
+              <button class="nav-dropdown-trigger whitespace-nowrap flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-navy-600 hover:bg-navy-50 hover:text-navy-900" aria-haspopup="true" aria-expanded="false">
+                {cat.label}<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div class={`nav-dropdown-panel absolute top-full z-50 mt-1 hidden w-72 rounded-xl border border-navy-200 bg-white p-3 shadow-lg ${idx >= cats.length - 1 ? 'right-0' : 'left-0'}`}>
+                <div class="space-y-0.5">{cat.links.map((l) => <a href={l.href} class="block rounded-lg px-3 py-2 text-sm leading-snug text-navy-700 [overflow-wrap:anywhere] hover:bg-accent-50 hover:text-accent-700">{l.label}</a>)}</div>
+              </div>
+            </div>
+          ))}
+          {direct.map((l) => <a href={l.href} class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-navy-600 hover:bg-navy-50 hover:text-navy-900">{l.label}</a>)}
+          {otherLocales.map((l) => <a href={alts ? alts[l] : route('home', l)} hreflang={l} class="whitespace-nowrap ml-2 rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs font-semibold uppercase text-navy-600 hover:bg-navy-50">{l}</a>)}
+        </div>
+        <div class="flex items-center gap-2 lg:hidden">
+          {otherLocales.map((l) => <a href={alts ? alts[l] : route('home', l)} class="rounded-lg border border-navy-200 px-2 py-1 text-xs font-semibold uppercase text-navy-600">{l}</a>)}
+          <button id="mobile-menu-toggle" class="p-2 text-navy-600" aria-label={ui.menuOpen} aria-expanded="false" aria-controls="mobile-menu">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+        </div>
+      </div>
+      <div id="mobile-menu" class="hidden max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-navy-200 bg-white px-4 pb-4 lg:hidden">
+        {cats.map((cat) => (
+          <div class="border-b border-navy-100 py-2">
+            <button class="mobile-section-toggle flex w-full items-center justify-between gap-3 py-2 text-left text-sm font-semibold text-navy-900" aria-expanded="false"><span class="min-w-0 [overflow-wrap:anywhere]">{cat.label}</span><svg class="mobile-chevron h-4 w-4 shrink-0 text-navy-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg></button>
+            <div class="mobile-section-content hidden space-y-0.5 pb-2 pl-2">{cat.links.map((l) => <a href={l.href} class="block rounded py-1.5 pl-2 text-sm leading-snug text-navy-600 [overflow-wrap:anywhere] hover:text-accent-600">{l.label}</a>)}</div>
+          </div>
+        ))}
+        {direct.map((l) => <div class="border-b border-navy-100 py-2"><a href={l.href} class="block py-2 text-sm font-semibold leading-snug text-navy-900 [overflow-wrap:anywhere]">{l.label}</a></div>)}
+      </div>
+    </nav>
+    </header>
+    <main id="main-content" class="pt-16">
+      {(breadcrumbs.length > 0 || crumbAside) && (
+        <div class="mx-auto flex max-w-6xl flex-wrap items-baseline justify-between gap-x-6 gap-y-0.5 px-4 pt-3">{breadcrumbs.length > 0 && <nav aria-label={ui.breadcrumbLabel}>
+          <ol class="flex flex-wrap items-center gap-1 text-sm text-navy-500">
+            <li><a href={homeHref} class="hover:text-navy-900">{ui.breadcrumbHome}</a></li>
+            {breadcrumbs.map((item) => (<li class="flex items-center gap-1"><span aria-hidden="true">/</span>{item.href ? <a href={item.href} class="hover:text-navy-900">{item.label}</a> : <span class="text-navy-700" aria-current="page">{item.label}</span>}</li>))}
+          </ol>
+        </nav>}<Fragment set:html={crumbAside} /></div>
+      )}
+      <slot />
+    </main>
+    <footer class="mt-16 border-t border-navy-200 bg-navy-50">
+      <div class="mx-auto max-w-6xl px-4 py-12">
+        <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
+          {footerCols.map((col) => (<div><h2 class="mb-3 text-sm font-semibold text-navy-900">{col.label}</h2><ul class="space-y-2 text-sm text-navy-600">{col.links.map((l) => <li><a href={l.href} class="hover:text-navy-900">{l.label}</a></li>)}</ul></div>))}
+        </div>
+        {popular.length > 0 && (<div class="mt-8 border-t border-navy-200 pt-6"><h2 class="mb-2 text-sm font-semibold text-navy-900">{ui.footerPopular}</h2><p class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-navy-600">{popular.map((p) => <a href={p.href} class="hover:text-navy-900">{p.label}</a>)}</p></div>)}
+        <div class="mt-8 border-t border-navy-200 pt-8">
+          <div class="flex flex-col items-center gap-2 text-center text-sm text-navy-500">
+            <p><span class="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-3 py-0.5 text-xs font-medium text-green-700"><span class="inline-block h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>{ui.footerValidated} · {YEAR}</span></p>
+            <p>{ui.footerBrowser}</p>
+            <p>{ui.asOf} {YEAR}, {ui.lastUpdated} <time datetime={LAST_UPDATED}>{displayDate(LAST_UPDATED, LANG_TAGS[lang])}</time></p>
+            <p>&copy; {new Date().getFullYear()} {SITE_NAMES[lang]}. {ui.footerDisclaimer}</p>
+            {(GA4_ID || CLARITY_ID) && CONSENT_MODE !== 'none' && <p><button type="button" data-consent-manage class="underline hover:text-navy-900">{consentStrings(lang).manage}</button></p>}
+          </div>
+        </div>
+      </div>
+    </footer>
+    <script>
+      const toggle = document.getElementById('mobile-menu-toggle'); const menu = document.getElementById('mobile-menu');
+      toggle?.addEventListener('click', () => { const hidden = menu?.classList.toggle('hidden'); toggle.setAttribute('aria-expanded', hidden ? 'false' : 'true'); });
+      document.querySelectorAll('.mobile-section-toggle').forEach((btn) => { btn.addEventListener('click', () => { const c = btn.nextElementSibling; const open = c?.classList.toggle('hidden') === false; btn.setAttribute('aria-expanded', open ? 'true' : 'false'); btn.querySelector('.mobile-chevron')?.classList.toggle('rotate-180'); }); });
+      const closeAll = () => document.querySelectorAll('.nav-dropdown-panel').forEach((p) => p.classList.add('hidden'));
+      document.querySelectorAll('.nav-dropdown').forEach((dd) => { const trigger = dd.querySelector('.nav-dropdown-trigger'); const panel = dd.querySelector('.nav-dropdown-panel'); let to: ReturnType<typeof setTimeout>;
+        dd.addEventListener('mouseenter', () => { clearTimeout(to); closeAll(); panel?.classList.remove('hidden'); });
+        dd.addEventListener('mouseleave', () => { to = setTimeout(() => panel?.classList.add('hidden'), 150); });
+        trigger?.addEventListener('click', () => { const h = panel?.classList.contains('hidden'); closeAll(); if (h) panel?.classList.remove('hidden'); }); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
+      document.addEventListener('click', (e) => { if (!(e.target as HTMLElement).closest('.nav-dropdown')) closeAll(); });
+    </script>
+    <ConsentBanner lang={lang} />
+    {/* Tableaux sur mobile (lib/tableaux.ts) : sous 768 px, un tableau du contenu qui déborde devient une pile de fiches (libellé de colonne devant chaque valeur, testeurs naïfs du 2026-11-08) ; ce qui déborde encore garde la classe .tableau-defile (ombre, global.css), retirée en fin de défilement ; recalculé quand le contenu de <main> change (tableau rempli après une saisie). */}
+    <script is:inline set:html={SCRIPT_TABLEAUX} />
+  </body>
+</html>

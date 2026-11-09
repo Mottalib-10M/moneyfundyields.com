@@ -1,0 +1,53 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+import MiniSim from '../../components/calc/MiniSim';
+import { FUNDS, fund, pct, KIND_LABEL } from '../../lib/data';
+import { src, related, fundHref } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+// One row per fund (series), not per share class: maturity is a portfolio figure.
+const series = [...new Map(FUNDS.map((f) => [f.sid, f])).values()].filter((f) => f.wam != null && f.wal != null);
+const kinds = ['treasury-only', 'treasury', 'government', 'prime', 'muni', 'state-muni'] as const;
+const stat = kinds.map((k) => { const s = series.filter((f) => f.k === k); const m = (x: (f: typeof s[number]) => number) => s.reduce((t, f) => t + x(f), 0) / Math.max(1, s.length);
+  return { k, n: s.length, wam: m((f) => f.wam ?? 0), wal: m((f) => f.wal ?? 0), maxWal: Math.max(...s.map((f) => f.wal ?? 0)) }; });
+const longest = [...series].sort((a, b) => (b.wal ?? 0) - (a.wal ?? 0)).slice(0, 5);
+const spa = fund('SPAXX'), vmf = fund('VMFXX');
+const title = fitTitle(['Money Market Fund Rules: Rule 2a-7 Limits, Fees and NAV', 'Money Market Fund Rules: Rule 2a-7 Limits, Fees and the NAV']);
+const description = fitDesc([
+  `Money market fund rules under rule 2a-7: maturity and liquidity limits, stable and floating prices, liquidity fees, and how each fund measured up in its filing.`,
+  `Money market fund rules under rule 2a-7: maturity and liquidity limits, stable and floating share prices, liquidity fees, and how each fund measured up in its filings.`,
+]);
+const faqs = [
+  { q: 'Can a money market fund lose money?', a: `Yes. A stable-price fund aims to keep its shares at $1.00, and rule 2a-7 limits what it may hold so that the aim is realistic, but nothing guarantees it. Money funds are not bank deposits and are not insured by the FDIC. A fund’s sponsor has no legal duty to support it.` },
+  { q: 'What is the difference between a government and a prime fund under the rules?', a: `A government fund invests at least 99.5% of its assets in cash, government securities and repo fully backed by them. It may keep a $1.00 price for every investor and is not required to have fees. A prime fund may also hold bank and company debt and is subject to fee rules.` },
+  { q: 'Can a money fund stop me from selling?', a: `The 2023 amendments removed the power to suspend redemptions temporarily with a gate, which funds had under the 2014 rules. A fund can still charge a liquidity fee in the cases the rule allows, and, like any mutual fund, can suspend redemptions only in narrow cases such as a liquidation approved under the rule.` },
+];
+---
+<GuideLayout lang="en" id="money-market-fund-rules" title={title} description={description} breadcrumbLabel="Fund rules"
+  h1="Money market fund rules: what rule 2a-7 requires, fund by fund"
+  intro="The limits every U.S. money fund works under, and the maturity figures each fund reported in its own filing."
+  faqs={faqs} related={related('prime-vs-government-money-market-funds', 'seven-day-yield', 'fund-spaxx')} sources={src('rule-2a7', 'nmfp', 'nmfp-archive')}>
+  <p>A money market fund in the United States is a mutual fund that complies with rule 2a-7 under the Investment Company Act. The rule is what allows most of these funds to keep a share price of $1.00, and in exchange it constrains what they may hold. Holdings must be short: no single security may mature in more than 397 days, the dollar-weighted average maturity of the portfolio may not exceed 60 days, and its weighted average life, which counts floating-rate notes to their final maturity rather than their next reset, may not exceed 120 days. Holdings must be liquid: at least 25% of assets must be cash or securities convertible to cash within one business day, and at least 50% within five business days, the levels set by the amendments adopted in 2023. Holdings must be of high quality and diversified across issuers. And every fund must report its full portfolio monthly on Form N-MFP, the filing this site reads. These limits explain why money funds react to rate changes within weeks, why their yields stay close to Treasury bill rates, and why the figures here can be checked against the rule for every fund.</p>
+
+  <div data-simulateur-secondaire><MiniSim client:load kind="limits" href="/en/" /></div>
+
+  <h2>Maturity in the filings</h2>
+  <p>The weighted average maturity and weighted average life reported for each fund at the end of the latest month, averaged by type of fund (one figure per fund, not per share class):</p>
+  <div data-chrome class="overflow-x-auto"><table>
+    <thead><tr><th>Type</th><th class="text-right">Funds</th><th class="text-right">Average maturity</th><th class="text-right">Average life</th><th class="text-right">Longest life</th></tr></thead>
+    <tbody>{stat.filter((x) => x.n).map((x) => <tr><td>{KIND_LABEL[x.k]}</td><td class="tabular-nums text-right">{x.n}</td><td class="tabular-nums text-right">{Math.round(x.wam)} days</td><td class="tabular-nums text-right">{Math.round(x.wal)} days</td><td class="tabular-nums text-right">{x.maxWal} days</td></tr>)}</tbody>
+  </table></div>
+  <p>The gap between maturity and life is the floating-rate notes. A two-year Treasury floating-rate note whose rate resets every day counts as one day for maturity and as its full remaining term for life. Government funds that hold many floating-rate agency notes show a life far above their maturity. Fidelity Government Money Market (SPAXX) reported {spa.wam} days of maturity and {spa.wal} of life; Vanguard Federal (VMFXX) {vmf.wam} and {vmf.wal}. A longer maturity means the yield follows market rates more slowly; a longer life means more exposure to the credit and liquidity of the issuers over time. The funds with the longest life in the data:</p>
+  <div data-chrome class="overflow-x-auto"><table>
+    <thead><tr><th>Fund</th><th class="text-right">Maturity</th><th class="text-right">Life</th></tr></thead>
+    <tbody>{longest.map((f) => { const h = fundHref(f.t); return <tr><td>{h ? <a href={h}>{f.t}</a> : f.t} {f.name}</td><td class="tabular-nums text-right">{f.wam} days</td><td class="tabular-nums text-right">{f.wal} days</td></tr>; })}</tbody>
+  </table></div>
+
+  <h2>Stable and floating share prices</h2>
+  <p>Rule 2a-7 sorts funds into three groups. Government funds, which hold at least 99.5% of their assets in cash, government securities and repo backed by them, may use amortized cost to keep a stable $1.00 price for every investor. Retail funds, prime or tax-exempt, may also keep a stable price, but only for accounts of natural persons; the fund must have policies that limit it to individuals. Institutional prime and institutional tax-exempt funds must float their price, rounded to four decimals, so that gains and losses show up in the share price. Every fund in the comparator on this site is either a government fund or a retail fund, so all keep a $1.00 price.</p>
+
+  <h2>Liquidity fees</h2>
+  <p>The 2023 amendments changed the fee rules. A fund that is not a government fund may charge a discretionary liquidity fee of up to 2% on redemptions if its board, or its delegate, decides the fee is in the fund’s best interest. Institutional prime and institutional tax-exempt funds must charge a mandatory liquidity fee when net redemptions on a day exceed 5% of net assets, unless the cost of meeting them is negligible. Government funds may choose to adopt a discretionary fee, but are not required to. The same amendments removed redemption gates and broke the old link between a fund’s weekly liquidity and fees. For a retail investor in a government or retail prime fund, the practical change is small: fees remain possible in a crisis for retail prime and tax-exempt funds, and remain unusual for government funds.</p>
+
+  <h2>Reporting</h2>
+  <p>Every money fund files Form N-MFP within five business days after the end of each month. Since the 2023 amendments the form has carried more detail, including daily yields and daily and weekly liquid assets for each business day of the month, and the Commission publishes the filings as they are received. That is what makes this site possible: the yields, holdings and maturities on every page come from those reports, as filed, without relying on the fund companies’ own presentation. It also sets the site’s delay, since a month’s data appears only in the first week of the next one.</p>
+</GuideLayout>

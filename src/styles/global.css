@@ -1,0 +1,105 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@font-face { font-family: 'Source Serif 4'; font-style: normal; font-weight: 200 900; font-display: swap; src: url('/fonts/source-serif-4-var.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400 700; font-display: swap; src: url('/fonts/inter-var.woff2') format('woff2'); }
+@theme {
+  --color-navy-50: #f8fafc; --color-navy-100: #f1f5f9; --color-navy-200: #e2e8f0; --color-navy-300: #cbd5e1; --color-navy-400: #94a3b8; --color-navy-500: #64748b; --color-navy-600: #475569; --color-navy-700: #334155; --color-navy-800: #1e293b; --color-navy-900: #0f172a; --color-navy-950: #020617;
+  --color-accent-50: #f0faf7; --color-accent-100: #ddf3ed; --color-accent-200: #bae8da; --color-accent-300: #8dd8c2; --color-accent-400: #5fc9aa; --color-accent-500: #1F5C4A; --color-accent-600: #1a4e3f; --color-accent-700: #164034; --color-accent-800: #113429; --color-accent-900: #0e2821;
+  --color-success: #15803d; --color-warning: #b45309; --color-error: #dc2626;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+}
+html { font-size: 17px; } body { line-height: 1.65; } .tabular-nums { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
+.skip-link { position: absolute; top: -100%; left: 50%; transform: translateX(-50%); z-index: 100; padding: .75rem 1.5rem; background: var(--color-accent-600); color: #fff; font-weight: 600; border-radius: 0 0 .5rem .5rem; text-decoration: none; transition: top .2s; } .skip-link:focus { top: 0; }
+*:focus-visible { outline: 2px solid var(--color-accent-500); outline-offset: 2px; } input:focus-visible, select:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--color-accent-500); border-color: var(--color-accent-500); }
+@media print { nav, footer, .no-print, .skip-link, #mobile-menu-toggle, #mobile-menu { display: none !important; } body { color: #000 !important; background: #fff !important; font-size: 11pt; } main { padding-top: 0 !important; } h1, h2, h3 { page-break-after: avoid; } table { page-break-inside: avoid; } }
+.prose h2 { margin-top: 1.25em; padding-top: 1em; border-top: 1px solid var(--color-navy-200); } .prose h2:first-child { margin-top: 0; padding-top: 0; border-top: none; } .prose h3 { margin-top: 2em; } .prose p { margin-top: 1.4em; margin-bottom: 1.4em; } .prose li { margin-top: .6em; margin-bottom: .6em; }
+.prose table { margin-top: 2em; margin-bottom: 2em; font-size: .95em; } .prose th, .prose td { padding: .65em .9em; } .prose thead th { background-color: var(--color-navy-50); font-weight: 600; }
+.callout { padding: 1.25rem 1.5rem; border-left: 4px solid; border-radius: .5rem; margin: 2em 0; font-size: .95rem; line-height: 1.7; } .callout p:first-child { margin-top: 0; } .callout p:last-child { margin-bottom: 0; } .callout-title { font-weight: 700; margin-bottom: .35em; display: block; }
+.callout-info { border-left-color: #2563eb; background-color: #eff6ff; color: #1e3a8a; } .callout-tip { border-left-color: #15803d; background-color: #f0fdf4; color: #14532d; } .callout-warning { border-left-color: #b45309; background-color: #fffbeb; color: #78350f; } .callout-example { border-left-color: #64748b; background-color: #f8fafc; color: #1e293b; }
+
+/* Titres : césure selon la langue de la page, jamais de débordement sur mobile (RECETTE §10.3). */
+h1, h2, h3, h4 { overflow-wrap: break-word; }
+/* Césure seulement là où les mots composés débordent (« Versicherungspflichtverhältnis ») ; en anglais elle coupait « bid-ding » (sg-car-cost, 2026-10-24). */
+:is(:lang(de), :lang(nl), :lang(fi), :lang(sv), :lang(da), :lang(nb), :lang(no), :lang(is), :lang(hu), :lang(et)) :is(h1, h2, h3, h4) { hyphens: auto; }
+
+/* Rythme vertical (RECETTE §10.3) : le contenu ne touche jamais le calculateur. */
+.rechner { margin-bottom: 3rem; }
+.prose .overflow-x-auto { margin-top: 1.75em; margin-bottom: 1.75em; } .prose .overflow-x-auto > table { margin-top: 0; margin-bottom: 0; }
+
+/* Tableaux sur mobile (audit du 2026-10-28 : 85 sites sur 202 avaient un tableau plus large que
+   l'écran, colonnes coupées sans indice) : tout tableau du contenu défile dans sa propre largeur.
+   Le script de fin de BaseLayout marque .tableau-defile ceux qui débordent vraiment : une ombre
+   intérieure à droite signale les colonnes restantes, puis disparaît en fin de défilement (.fin).
+   Pas de dégradé de fond : il peignait des bandes blanches sur les tableaux posés dans un encart
+   coloré. */
+@media (max-width: 767px) {
+  main :not(.overflow-x-auto) > table, .overflow-x-auto { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  main :not(.overflow-x-auto) > table { display: block; }
+  .tableau-defile { box-shadow: inset -14px 0 12px -12px rgb(0 0 0 / .3); }
+  .tableau-defile.fin { box-shadow: none; }
+}
+
+/* Fiches empilées (testeurs naïfs du 2026-11-08, lib/tableaux.ts) : le défilement avec ombre ne
+   suffisait pas, trois testeurs sur trois lisaient « $2,00( » au bord sans faire glisser. Sous
+   768 px, un tableau de 3 colonnes ou plus, ou qui déborde (classe .empile posée au build par
+   ContentTable / tableHtml ou par le script de BaseLayout), devient une fiche par ligne : la première cellule en titre, chaque autre valeur précédée du nom
+   de sa colonne (data-label). En-tête gardé pour les lecteurs d'écran. Un tableau de deux
+   colonnes qui tient dans l'écran n'est pas touché. */
+@media (max-width: 767px) {
+  main table.empile, main :not(.overflow-x-auto) > table.empile { display: block; overflow: visible; box-shadow: none; width: 100%; }
+  table.empile thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+  table.empile caption { display: block; text-align: left; }
+  table.empile tbody, table.empile tr, table.empile :is(td, th) { display: block; width: 100%; }
+  table.empile tr { border-bottom: 1px solid var(--color-navy-200); padding: .55rem 0; }
+  table.empile :is(td, th) { border: 0; padding: .15rem 0; text-align: left; background: transparent; }
+  table.empile :is(td, th):first-child { font-weight: 600; color: var(--color-navy-900); }
+  table.empile :is(td, th):not(:first-child) { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; text-align: right; }
+  table.empile :is(td, th):not(:first-child)::before { content: attr(data-label); flex: 0 1 55%; text-align: left; font-weight: 500; color: var(--color-navy-600); }
+  table.empile :is(td, th):not(:first-child):is([data-label=""], :not([data-label]))::before { content: none; }
+  .overflow-x-auto:has(> table.empile) { overflow: visible; box-shadow: none; }
+  /* Titre de la fiche (lib/tableaux.ts, ficheTitre) : un rang ou un nombre seul en 1re colonne cède le titre à la
+     colonne suivante (data-titre="2") et reste dans la fiche avec son libellé ; un nombre qui reste titre garde le
+     nom de sa colonne devant lui (« Personas: 3 »). */
+  table.empile[data-titre] tr { display: flex; flex-direction: column; }
+  table.empile[data-titre] :is(td, th):nth-child(2) { order: -1; display: block; text-align: left; font-weight: 600; color: var(--color-navy-900); }
+  table.empile[data-titre] :is(td, th):nth-child(2)::before { content: none; }
+  table.empile[data-titre] :is(td, th):first-child { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; text-align: right; font-weight: 400; color: var(--color-navy-700); }
+  table.empile[data-titre] :is(td, th):first-child::before { content: attr(data-label); flex: 0 1 55%; text-align: left; font-weight: 500; color: var(--color-navy-600); }
+  table.empile[data-titre] :is(td, th):first-child:empty { display: none; } /* ligne de total sans rang */
+}
+
+/* Aide d'un champ (RECETTE §10.3) : dans une rangée à deux champs, si le voisin de droite n'a pas
+   d'aide, celle du champ de gauche s'étend sur toute la rangée au lieu de s'enrouler sur 3 à 8
+   lignes dans une demi-colonne. La rangée sert de conteneur (100cqw = sa largeur exacte) et les
+   colonnes ne peuvent pas grandir (minmax(0, 1fr)) : l'aide déborde sans rien pousser.
+   Si le voisin a aussi une aide, chacune reste dans sa colonne. */
+form :is(.grid-cols-2, .grid-cols-\[1fr_auto\]) { container-type: inline-size; }
+form .grid-cols-\[1fr_auto\] { grid-template-columns: minmax(0, 1fr) auto; }
+form :is(.grid-cols-2, .grid-cols-\[1fr_auto\]) > * { grid-template-columns: minmax(0, 1fr); }
+form :is(.grid-cols-2, .grid-cols-\[1fr_auto\]) > :first-child > [id$="-help"] { width: 100cqw; }
+form :is(.grid-cols-2, .grid-cols-\[1fr_auto\]):has(> :nth-child(2) [id$="-help"]) > :first-child > [id$="-help"] { width: auto; }
+
+/* §10.2 : la typographie porte le design. Titres en serif, corps en sans-serif ;
+   tableaux de style journal (filet sous l'en-tete, pas de bordures verticales,
+   en-tetes en petites capitales, chiffres tabulaires). */
+h1, h2, h3, .font-serif { font-family: var(--font-serif); letter-spacing: -0.01em; }
+h1 { font-weight: 700; } h2 { font-weight: 650; } h3 { font-weight: 600; }
+.prose table, table.journal { font-variant-numeric: tabular-nums; border-collapse: collapse; }
+.prose thead th, table.journal thead th { font-variant: small-caps; letter-spacing: .02em; border-bottom: 1px solid var(--color-navy-300); background: transparent; }
+.prose td, .prose th, table.journal td, table.journal th { border-left: 0; border-right: 0; }
+
+/* Résumé replié (Clamp.astro, RECETTE §26 et testeurs naïfs du 2026-11-08) : UN <p> dans le HTML ;
+   l'écran montre au moins deux phrases entières, « Lire tout le paragraphe » déplie la suite sans
+   JavaScript. check-premier-ecran vérifie que ces règles sont là. */
+@layer components {
+  .clamp { position: relative; }
+  .clamp-rest { display: none; }
+  .clamp-toggle { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .clamp-toggle:checked ~ p .clamp-rest { display: inline; }
+  .clamp-toggle:checked ~ .clamp-more { display: none; }
+  .clamp-more { display: inline-block; cursor: pointer; margin-top: .25rem; font-size: .875rem; font-weight: 600; color: var(--color-accent-700); text-decoration: underline; text-underline-offset: 3px; }
+  .clamp-toggle:focus-visible ~ .clamp-more { outline: 2px solid var(--color-accent-500); outline-offset: 3px; }
+}

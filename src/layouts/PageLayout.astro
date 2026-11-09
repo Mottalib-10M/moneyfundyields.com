@@ -1,0 +1,35 @@
+---
+import { LANG_TAGS as __LT } from '../data/site-config';
+import { displayDate } from '../lib/format';
+import BaseLayout from './BaseLayout.astro';
+import { YEAR, LAST_UPDATED, AUTHOR_NAME, AUTHOR_ROLE } from '../data/site-config';
+import { t } from '../i18n/ui';
+import { route, type Locale } from '../i18n/routes';
+import type { FAQItem } from '../lib/seo';
+import { libellesTrame } from '../lib/libelles-trame';
+interface BreadcrumbItem { label: string; href?: string }
+interface Props { title: string; description: string; lang: Locale; canonical?: string; ogImage?: string; noindex?: boolean; jsonLd?: string[]; related?: Array<{ href: string; name: string; description: string }>; faqs?: FAQItem[]; sources?: Array<{ name: string; url: string }>; breadcrumbs?: BreadcrumbItem[]; showAuthor?: boolean; dateEnHaut?: boolean; faqOuverte?: number }
+const { title, description, lang, canonical, ogImage, noindex = false, jsonLd = [], related = [], faqs = [], sources = [], breadcrumbs = [], showAuthor = true, dateEnHaut = false, faqOuverte = -1 } = Astro.props;
+const ui = t(lang);
+---
+<BaseLayout title={title} description={description} lang={lang} canonical={canonical} ogImage={ogImage} noindex={noindex} jsonLd={jsonLd} breadcrumbs={breadcrumbs}>
+  {/* Date en haut seulement sur une page de lecture (GuideLayout, dateEnHaut) : sur un
+       simulateur ou un accueil elle repoussait le titre sans rien apprendre ; elle reste en
+       bas de page et dans dateModified (RECETTE §8.4). À droite, sur la ligne fine du fil
+       d'Ariane : seule sur sa ligne, elle laissait ≈ 100 px de blanc (§10.3, check-layout 13). */}
+  {dateEnHaut && <p slot="crumb-aside" data-chrome class="ml-auto text-sm text-navy-500">{ui.updatedOn} <time datetime={LAST_UPDATED}>{displayDate(LAST_UPDATED, __LT[lang])}</time></p>}
+  <div class="mx-auto max-w-6xl px-4 pb-8 pt-4">
+    <slot />
+    {/* FAQ (testeurs naïfs du 2026-11-08) : une aide localisée dit que les questions s'ouvrent, et une question
+         peut être ouverte d'emblée (`faqOuverte` = son rang, ou `open: true` sur la question). */}
+    {faqs.length > 0 && (<section class="mt-12" id="faq"><h2 class="mb-2 text-2xl font-bold text-navy-900">{ui.faqTitle}</h2><p data-chrome data-faq-aide class="mb-4 text-sm text-navy-600">{libellesTrame(lang).faqAide}</p><div class="space-y-3">
+      {faqs.map((faq, i) => (<details open={faq.open || i === faqOuverte} class="group rounded-lg border border-navy-200 bg-white"><summary class="flex cursor-pointer items-center justify-between gap-4 px-5 py-4 font-medium text-navy-900">{faq.q}<svg class="h-5 w-5 shrink-0 text-navy-400 transition-transform group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" /></svg></summary><div class="px-5 pb-4 text-navy-600"><p>{faq.a}</p></div></details>))}
+    </div></section>)}
+    {related.length > 0 && (<section class="mt-12" data-chrome><h2 class="mb-6 text-2xl font-bold text-navy-900">{ui.relatedCalculators}</h2><div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {related.map((r) => (<a href={r.href} class="rounded-lg border border-navy-200 p-4 transition-colors hover:border-accent-300 hover:bg-accent-50"><h3 class="font-semibold text-navy-900">{r.name}</h3><p class="mt-1 text-sm text-navy-500">{r.description}</p></a>))}
+    </div></section>)}
+    {sources.length > 0 && (<section class="mt-12" data-chrome><h2 class="mb-4 text-lg font-semibold text-navy-900">{ui.sourcesTitle}</h2><ul class="list-disc pl-5 text-sm text-navy-600">{sources.map((s) => <li><a href={s.url} target="_blank" rel="nofollow noopener noreferrer" class="hover:text-accent-600">{s.name}</a></li>)}</ul></section>)}
+    {showAuthor && (<div data-chrome data-author={AUTHOR_NAME} class="mt-10 flex items-center gap-4 rounded-lg border border-navy-200 bg-navy-50 px-5 py-4"><div class="text-sm"><p class="font-semibold text-navy-900">{ui.writtenBy} <a rel="author" href={route('about', lang)} class="text-accent-600 hover:underline">{AUTHOR_NAME}</a></p><p class="text-navy-500">{AUTHOR_ROLE[lang]}</p><p class="mt-1 text-navy-500">{ui.updatedOn} <time datetime={LAST_UPDATED}>{displayDate(LAST_UPDATED, __LT[lang])}</time> · <a href={route('editorial', lang)} class="text-accent-600 hover:underline">{ui.editorialPolicy}</a> · <a href={route('contact', lang)} class="text-accent-600 hover:underline">{ui.contactLabel}</a></p></div></div>)}
+    <p data-chrome class="mt-4 text-sm text-navy-500">{ui.asOf} {YEAR}, {ui.lastUpdated} <time datetime={LAST_UPDATED}>{displayDate(LAST_UPDATED, __LT[lang])}</time></p>
+  </div>
+</BaseLayout>

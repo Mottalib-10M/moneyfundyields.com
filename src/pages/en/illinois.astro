@@ -1,0 +1,33 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import StateTables from '../../components/StateTables.astro';
+import { fund, pct, usd, day, META, YIELD_DAYS } from '../../lib/data';
+import { afterTax } from '../../lib/engine/tax';
+import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const vmf = fund('VMFXX'), spr = fund('SPRXX'), fzf = fund('FZFXX');
+const sit = { amount: 75000, state: 'IL', filing: 'joint' as const, income: 180000 };
+const a = afterTax(vmf, sit), b = afterTax(spr, sit);
+const title = fitTitle(['Illinois Money Market Fund Tax: 4.95% and U.S. Obligations', 'Illinois Money Market Fund Tax: 4.95% and the Exempt Share']);
+const description = fitDesc([
+  `Illinois money market fund tax: 4.95% on dividends except the part from U.S. obligations, repo income included in the tax. Every fund ranked after Illinois tax.`,
+  `Illinois money market fund tax: a flat 4.95% on dividends except the part from U.S. obligations, with repo income taxed. Every fund ranked after Illinois tax.`,
+]);
+const faqs = [
+  { q: 'Can I subtract Treasury fund dividends on an Illinois return?', a: `Yes, the part of a fund’s dividends that comes from U.S. Treasury obligations and other exempt federal obligations, following Illinois Publication 101. The fund’s year-end letter gives the percentage. Income from repurchase agreements is not subtracted, even when Treasuries are the collateral.` },
+  { q: 'Does Illinois tax municipal money fund dividends?', a: `Illinois generally taxes interest on state and local bonds, including most Illinois bonds, unless a specific law exempts them. For a national municipal money fund that means the dividend is free of federal tax but mostly taxable in Illinois; the calculator treats it as fully taxable by the state.` },
+  { q: 'How much does the Illinois exemption add to a Treasury fund?', a: `At 4.95%, on a fund paying ${pct(fzf.y)} with about ${pct(fzf.usob, 0)} of its holdings in Treasuries, the exemption adds roughly ${pct(fzf.y * fzf.usob * 0.0495, 3)} of yield. On a fund holding only Treasuries, nearly 4.95% of the dividend is saved. Use the percentage in the fund’s year-end letter for the exact figure.` },
+];
+---
+<ToolPage id="illinois" title={title} description={description} crumb="Illinois"
+  h1="Illinois money market fund tax: 4.95% and the U.S. obligation share"
+  lede={`Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, Illinois rate for tax year 2025. Not tax or investment advice.`}
+  faqs={faqs} related={related('us-government-obligations-percentage', 'fund-fzfxx', 'prime-vs-government-money-market-funds')} sources={src('il-pub101', 'il-rate', 'nmfp', 'irs-rp')}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VMFXX" b="SPRXX" methodHref={METHOD} defFiling="joint" defState="IL" defIncome={180000} defAmount={75000} id="c-il" />
+  <div class="prose prose-slate mt-10 max-w-none">
+    <h2>A flat rate, a proportional exemption, and repo taxed</h2>
+    <p>Illinois applies its flat 4.95% individual income tax to money market fund dividends and lets residents subtract the part that comes from obligations of the United States. Publication 101 of the Department of Revenue, which lists the federal obligations whose interest Illinois exempts, is explicit about the trap in money funds: income from repurchase agreements is not exempt, whatever the collateral. That matters because many government and Treasury funds hold a large share of repo. There is no 50% test, so every fund passes its exempt share through, large or small. For a joint return at $180,000 with {usd(75000)} in cash, Vanguard Federal (VMFXX), which filed {pct(vmf.y)} and held about {pct(vmf.usob, 0)} of its portfolio in exempt obligations, left {pct(a.afterTaxYield)} after Illinois and federal tax. Fidelity’s prime fund SPRXX, which filed {pct(spr.y)} with about {pct(spr.usob, 0)} of its holdings in exempt obligations, left {pct(b.afterTaxYield)}. The {usd(Math.abs(a.net - b.net))} a year between them comes from both the yield gap and the state exemption; the calculator lets you replace the holdings estimate with the percentage from the fund’s year-end letter.</p>
+  </div>
+  <StateTables st="IL" />
+</ToolPage>

@@ -1,0 +1,20 @@
+---
+/**
+ * Résumé replié (RECETTE §26, 2026-10-02 ; testeurs naïfs du 2026-11-08) : UN seul <p> dans le HTML,
+ * entier ; l'écran montre au moins deux phrases entières (lib/clamp.ts), la suite est dans un <span>
+ * caché du même <p>, dépliée par une case à cocher, sans JavaScript. Jamais de <details> : check-seo
+ * doit trouver le bloc de 120 mots dans les premiers 30 % de la page (§21). Le lien dit ce qu'il fait,
+ * dans la langue de la page (« Lire tout le paragraphe », « Show the whole paragraph ») : « Read more »
+ * faisait croire à une autre page. Styles .clamp-* dans global.css (contrôlés par check-premier-ecran).
+ */
+import { replier } from '../lib/clamp';
+import { libellesTrame } from '../lib/libelles-trame';
+interface Props { text: string; id: string; lang?: string; sentences?: number; label?: string; class?: string }
+const { text, id, lang = 'en', sentences = 2, label, class: cls = '' } = Astro.props;
+const { tete, suite } = replier(text, { phrases: sentences });
+---
+<div class={`clamp ${cls}`}>
+  {suite && <input type="checkbox" id={id} class="clamp-toggle" />}
+  <p class="text-navy-800">{tete}{suite && <span class="clamp-rest"> {suite}</span>}</p>
+  {suite && <label for={id} class="clamp-more">{label ?? libellesTrame(lang).lireTout} ▾</label>}
+</div>

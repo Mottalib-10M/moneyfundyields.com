@@ -1,0 +1,98 @@
+---
+/**
+ * Bandeau de consentement (Google Consent Mode v2).
+ *
+ * Trois régimes, selon CONSENT_MODE dans site-config :
+ *  - 'none' (défaut depuis le 2026-10-02, choix de l'éditeur : aucun bandeau sur aucun site) :
+ *    la mesure d'audience se charge à l'ouverture de la page, et les pages cookies et
+ *    confidentialité le disent.
+ *  - 'opt-in' (UE, Suisse) : rien n'est autorisé tant que l'utilisateur n'a pas accepté.
+ *    Le refus est aussi accessible que l'acceptation, au même niveau visuel (exigence CNIL,
+ *    EDPB 03/2022 ; même logique pour l'AEPD, l'AP et les autorités allemandes).
+ *  - 'notice' (Canada, Australie) : mesure d'audience active par défaut, avec information
+ *    préalable et retrait possible à tout moment (PIPEDA, Privacy Act 1988 / APP 5).
+ *
+ * Le choix est conservé dans localStorage, jamais dans un cookie : il ne quitte pas
+ * l'appareil et n'identifie personne. L'état par défaut est posé dans le <head> par
+ * BaseLayout, avant le chargement de gtag.js, pour qu'aucun cookie ne précède le choix.
+ *
+ * Le bandeau n'est rendu que si une mesure d'audience est réellement configurée
+ * (GA4_ID ou CLARITY_ID non vide) : sans elle, le site ne dépose rien et n'a rien à demander.
+ */
+import { GA4_ID, CLARITY_ID, CONSENT_MODE } from '../data/site-config';
+import { route } from '../i18n/routes';
+import { consentStrings } from '../data/consent-strings';
+
+interface Props { lang: string }
+const { lang } = Astro.props;
+
+const s = consentStrings(lang);
+const cookiesHref = route('cookies', lang as never);
+---
+{(GA4_ID || CLARITY_ID) && CONSENT_MODE !== 'none' && (
+  <>
+    <div
+      id="consent-banner"
+      class="fixed inset-x-0 bottom-0 z-[60] hidden border-t border-navy-200 bg-white/98 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="consent-title"
+    >
+      <div class="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-4 sm:py-5">
+        <h2 id="consent-title" class="text-sm font-semibold text-navy-900">{s.title}</h2>
+        <p class="text-sm leading-relaxed text-navy-600">
+          {s.body}{' '}<a href={cookiesHref} class="underline hover:text-navy-900">{s.more}</a>.
+        </p>
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button type="button" data-consent="granted" class="rounded-lg bg-navy-900 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-700">{s.accept}</button>
+          <button type="button" data-consent="denied" class="rounded-lg border border-navy-300 px-4 py-2 text-sm font-semibold text-navy-700 hover:bg-navy-50">{s.reject}</button>
+        </div>
+      </div>
+    </div>
+    <script is:inline>
+      (function () {
+        var KEY = 'consent-choice';
+        var banner = document.getElementById('consent-banner');
+        if (!banner) return;
+        var stored = null;
+        try { stored = localStorage.getItem(KEY); } catch (e) { /* stockage bloqué : on redemande */ }
+        var apply = function (value) {
+          var granted = value === 'granted';
+          if (typeof window.gtag === 'function') {
+            window.gtag('consent', 'update', {
+              ad_storage: granted ? 'granted' : 'denied',
+              analytics_storage: granted ? 'granted' : 'denied',
+              ad_user_data: granted ? 'granted' : 'denied',
+              ad_personalization: granted ? 'granted' : 'denied',
+            });
+          }
+          // Clarity : charge au premier accord, cookies retires des le refus.
+          if (typeof window.__clarityLoad === 'function') {
+            if (granted) {
+              window.clarity('consentv2', { ad_Storage: 'denied', analytics_Storage: 'granted' });
+              window.__clarityLoad();
+            } else if (window.__clarityOn) {
+              window.clarity('consentv2', { ad_Storage: 'denied', analytics_Storage: 'denied' });
+            }
+          }
+        };
+        var open = function () { banner.classList.remove('hidden'); };
+        var close = function () { banner.classList.add('hidden'); };
+        // Le régime (opt-in ou information préalable) est décidé dans le <head> ; ici, seul
+        // compte le fait qu'aucun choix n'a encore été exprimé : on le demande une fois.
+        if (stored === null) open();
+        banner.querySelectorAll('[data-consent]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var value = btn.getAttribute('data-consent');
+            try { localStorage.setItem(KEY, value); } catch (e) { /* choix valable pour la session */ }
+            apply(value);
+            close();
+          });
+        });
+        document.querySelectorAll('[data-consent-manage]').forEach(function (el) {
+          el.addEventListener('click', function (e) { e.preventDefault(); open(); });
+        });
+      })();
+    </script>
+  </>
+)}

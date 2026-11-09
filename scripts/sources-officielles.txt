@@ -1,0 +1,195 @@
+# Sources officielles reconnues par check-seo.py (page pilier : ≥ 3 sources) et check-regles.py
+# (règle « chiffres ») — RECETTE §7 et §26 (2026-10-16). Liste partagée, lue par sources_officielles.py.
+#
+# Format : un domaine par ligne (sans https://, sans www.) ; il vaut pour ses sous-domaines
+# (« ree.es » couvre « esios.ree.es »). Une ligne qui contient « / » vise un chemin précis.
+# Les administrations dont le domaine porte un libellé gov / gouv / gob / govt / gv
+# (nhtsa.gov, gov.uk, ato.gov.au, sede.dgt.gob.es, bmf.gv.at…) et les suffixes publics
+# (gc.ca, admin.ch, bund.de, europa.eu, public.lu) sont reconnus sans être listés ici.
+#
+# Ajouter ici un organisme public ou para-public utile à plusieurs sites, sous son pays.
+# Une source propre au sujet d'UN site (ordre professionnel, société savante, éditeur de
+# référence) va dans scripts/sources-primaires.txt du site, précédée d'une ligne de
+# commentaire qui dit pourquoi elle fait autorité.
+
+# — International, intergouvernemental
+bipm.org
+oiml.org
+oecd.org
+who.int
+imf.org
+worldbank.org
+bis.org
+ilo.org
+
+# — France
+service-public.fr
+legifrance.gouv.fr
+urssaf.fr
+urssaf.org
+impots.gouv.fr
+francetravail.fr
+unedic.org
+ameli.fr
+caf.fr
+insee.fr
+anil.org
+lassuranceretraite.fr
+agirc-arrco.fr
+info-retraite.fr
+banque-france.fr
+amf-france.org
+cnil.fr
+has-sante.fr
+santepubliquefrance.fr
+# énergie : Commission de régulation de l'énergie, gestionnaires de réseau publics
+cre.fr
+rte-france.com
+services-rte.com
+enedis.fr
+grdf.fr
+ademe.fr
+
+# — Allemagne
+arbeitsagentur.de
+gesetze-im-internet.de
+bundesfinanzministerium.de
+bundesregierung.de
+destatis.de
+bafin.de
+bmas.de
+bmfsfj.de
+bmj.de
+bmjv.de
+familienportal.de
+minijob-zentrale.de
+deutsche-rentenversicherung.de
+bundesbank.de
+elster.de
+bundesnetzagentur.de
+bundesgesundheitsministerium.de
+gkv-spitzenverband.de
+bundesanzeiger.de
+bundesamtsozialesicherung.de
+bundestag.de
+bundesgerichtshof.de
+smard.de
+bmf-steuerrechner.de
+marktstammdatenregister.de
+
+# — Autriche, Suisse, Benelux, Luxembourg
+sozialversicherung.at
+oesterreich.gv.at
+ahv-iv.ch
+# cantons suisses (domaines officiels des administrations cantonales)
+ag.ch
+ai.ch
+ar.ch
+be.ch
+bl.ch
+bs.ch
+fr.ch
+ge.ch
+gl.ch
+gr.ch
+jura.ch
+lu.ch
+ne.ch
+nw.ch
+ow.ch
+sg.ch
+sh.ch
+so.ch
+sz.ch
+tg.ch
+ti.ch
+ur.ch
+vd.ch
+vs.ch
+zg.ch
+zh.ch
+uwv.nl
+rijksoverheid.nl
+belastingdienst.nl
+wetten.overheid.nl
+dnb.nl
+socialsecurity.be
+statec.lu
+adem.lu
+
+# — Espagne, Portugal, Italie
+sepe.es
+boe.es
+seg-social.es
+agenciatributaria.es
+tesoro.es
+cnmv.es
+bde.es
+ine.es
+ree.es
+cnmc.es
+dgt.es
+idae.es
+madrid.es
+seg-social.pt
+portaldasfinancas.gov.pt
+ine.pt
+bportugal.pt
+inps.it
+gazzettaufficiale.it
+normattiva.it
+agenziaentrate.it
+istat.it
+arera.it
+
+# — Pays nordiques
+nav.no
+skatteetaten.no
+norges-bank.no
+skat.dk
+borger.dk
+skatteverket.se
+pensionsmyndigheten.se
+forsakringskassan.se
+riksbank.se
+scb.se
+riksdagen.se
+vero.fi
+kela.fi
+finlex.fi
+etk.fi
+tyoelake.fi
+tyj.fi
+tyosuojelu.fi
+stat.fi
+suomi.fi
+energiavirasto.fi
+fingrid.fi
+
+# — Royaume-Uni, Irlande (gov.uk et legislation.gov.uk sont couverts par « gov »)
+nhs.uk
+citizensinformation.ie
+revenue.ie
+welfare.ie
+mywelfare.ie
+
+# — États-Unis (les .gov sont couverts ; ici les organismes publics hors .gov)
+fueleconomy.gov
+federalregister.gov
+# compilations officielles des lois d'État hors .gov (*.state.xx.us est reconnu par nom)
+nmonesource.com
+tnsosfiles.com
+
+# — Canada, Australie, Nouvelle-Zélande (canada.ca, *.gc.ca, *.gov.au, *.govt.nz couverts)
+canada.ca
+revenuquebec.ca
+quebec.ca
+retraitequebec.gouv.qc.ca
+ontario.ca
+
+# — Amérique latine, Asie, Golfe, Maghreb
+inegi.org.mx
+nenkin.go.jp
+nps.or.kr
+u.ae
+cnss.ma

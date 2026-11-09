@@ -1,0 +1,24 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import { route } from '../../i18n/routes';
+import { CONTACT_EMAIL } from '../../data/site-config';
+import { contactPageSchema } from '../../lib/seo';
+const lang = 'en';
+const path = route('contact', lang);
+const description = 'Write to Money Fund Yields about a filed yield that looks wrong, a holding misclassified or a state tax rule that changed. E-mail only; no fund is sold and nothing is passed on.';
+---
+<PageLayout title="Contact Money Fund Yields: report a figure or a state rule" description={description} lang={lang} noindex={true} jsonLd={[contactPageSchema({ name: 'Contact', description, path, lang })]} breadcrumbs={[{ label: 'Contact' }]} showAuthor={false}>
+  <article class="prose prose-slate max-w-none">
+    <h1>Contact</h1>
+    <p>By e-mail: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. There is no form and no phone line. Nothing you write is passed on to a fund company, a broker or anyone else.</p>
+    <h2>Useful messages</h2>
+    <ul>
+      <li>A yield or a holding that does not match the fund’s Form N-MFP report: give the ticker and the report date.</li>
+      <li>A fund’s year-end letter percentage of income from U.S. obligations, with a link to the letter.</li>
+      <li>A state rule on fund dividends that this site applies wrongly or does not cover, with the state publication that sets it.</li>
+      <li>Embedding the calculator on another site: the code is on the <a href={route('widget', lang)}>embed page</a>.</li>
+    </ul>
+    <h2>What we cannot do</h2>
+    <p>We do not recommend funds, review your portfolio or say how to fill in your return. A registered investment adviser or a tax professional can.</p>
+  </article>
+</PageLayout>

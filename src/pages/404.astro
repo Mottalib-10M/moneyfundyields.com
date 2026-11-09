@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { route, DEFAULT_LOCALE } from '../i18n/routes';
+import { t } from '../i18n/ui';
+const ui = t(DEFAULT_LOCALE);
+---
+<BaseLayout title="404" description="404" lang={DEFAULT_LOCALE} noindex={true}>
+  <div class="mx-auto max-w-3xl px-4 py-16 text-center"><h1 class="text-3xl font-bold text-navy-900">404</h1><p class="mt-4 text-navy-600">{ui.notFound}</p><p class="mt-6"><a href={route('home', DEFAULT_LOCALE)} class="rounded-lg bg-accent-600 px-5 py-2.5 font-semibold text-white hover:bg-accent-700">{ui.breadcrumbHome}</a></p></div>
+</BaseLayout>

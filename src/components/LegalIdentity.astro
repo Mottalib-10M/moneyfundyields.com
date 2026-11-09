@@ -1,0 +1,43 @@
+---
+/**
+ * Bloc d'identité légale, alimenté par LEGAL dans site-config.
+ * Un champ non renseigné s'affiche en surbrillance pour qu'il ne parte pas en production,
+ * dans la langue de la page : ces marques sont visibles tant que `npm run check:legal` échoue.
+ */
+import { LEGAL, CONTACT_EMAIL } from '../data/site-config';
+interface Props { mode?: 'publisher' | 'hosting'; lang?: string }
+const { mode = 'publisher', lang = 'fr' } = Astro.props;
+const H = LEGAL.hosting;
+
+const LABELS: Record<string, { entity: string; address: string; city: string; hosting: string }> = {
+  fr: { entity: 'Raison sociale à compléter', address: 'Adresse à compléter', city: 'Ville à compléter', hosting: 'Hébergeur à compléter' },
+  de: { entity: 'Firma ergänzen', address: 'Anschrift ergänzen', city: 'Ort ergänzen', hosting: 'Hoster ergänzen' },
+  nl: { entity: 'Naam nog invullen', address: 'Adres nog invullen', city: 'Plaats nog invullen', hosting: 'Hostingpartij nog invullen' },
+  es: { entity: 'Falta la razón social', address: 'Falta la dirección', city: 'Falta la localidad', hosting: 'Falta el proveedor de alojamiento' },
+  en: { entity: 'Legal name to be added', address: 'Address to be added', city: 'City to be added', hosting: 'Hosting provider to be added' },
+  pt: { entity: 'Falta a denominação', address: 'Falta o endereço', city: 'Falta a localidade', hosting: 'Falta o alojamento' },
+  nb: { entity: 'Navn mangler', address: 'Adresse mangler', city: 'Sted mangler', hosting: 'Nettvert mangler' },
+  da: { entity: 'Navn mangler', address: 'Adresse mangler', city: 'By mangler', hosting: 'Webhotel mangler' },
+  sv: { entity: 'Namn saknas', address: 'Adress saknas', city: 'Ort saknas', hosting: 'Webbvärd saknas' },
+};
+const L = LABELS[lang] ?? LABELS.fr;
+const MARK = 'rounded bg-amber-100 px-1 font-semibold text-amber-900';
+---
+{mode === 'publisher' ? (
+  <p>
+    {LEGAL.entityName || <mark class={MARK}>{L.entity}</mark>}
+    {LEGAL.legalForm && <span> ({LEGAL.legalForm})</span>}<br />
+    {LEGAL.street || <mark class={MARK}>{L.address}</mark>}<br />
+    {LEGAL.postalCode}{' '}{LEGAL.city || <mark class={MARK}>{L.city}</mark>}, {LEGAL.country}<br />
+    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>{LEGAL.phone && <span> · {LEGAL.phone}</span>}
+    {LEGAL.registerNumber && <span><br />{LEGAL.registerLabel} : {LEGAL.registerNumber}</span>}
+    {LEGAL.vatNumber && <span><br />{LEGAL.vatLabel} : {LEGAL.vatNumber}</span>}
+  </p>
+) : (
+  <p>
+    {H.name || <mark class={MARK}>{L.hosting}</mark>}
+    {H.address && <span><br />{H.address}</span>}
+    {H.phone && <span><br />{H.phone}</span>}
+    {H.url && <span><br /><a href={H.url} rel="nofollow noopener" target="_blank">{H.url}</a></span>}
+  </p>
+)}

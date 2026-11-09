@@ -1,0 +1,44 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import FundPair from '../../components/FundPair.astro';
+import { fund, pct, day } from '../../lib/data';
+import { afterTax, stateOptions, isNoTax } from '../../lib/engine/tax';
+import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const a = fund('SWVXX'), b = fund('SNSXX');
+// For every state the site handles with its own schedule or with no tax, who keeps more at $120,000 single.
+const states = ['CA', 'NY', 'CT', 'NJ', 'PA', 'IL', 'TX', 'FL'];
+const names: Record<string, string> = Object.fromEntries(stateOptions().map((o) => [o.value, o.label]));
+const rows = states.map((st) => { const s = { amount: 50000, state: st, filing: 'single' as const, income: 120000 }; const x = afterTax(a, s), y = afterTax(b, s); return { st, x, y, win: x.net >= y.net ? 'SWVXX' : 'SNSXX' }; });
+const snsWins = rows.filter((r) => r.win === 'SNSXX').map((r) => names[r.st]);
+const title = fitTitle(['SWVXX vs SNSXX: Schwab Prime or Treasury Fund After Tax', 'SWVXX vs SNSXX: Schwab Prime or Treasury Fund, After Tax']);
+const description = fitDesc([
+  `SWVXX vs SNSXX as filed: ${pct(a.y)} against ${pct(b.y)}. The Schwab prime fund pays more, the Treasury fund escapes state tax. See which keeps more where you live.`,
+  `SWVXX vs SNSXX as filed: ${pct(a.y)} against ${pct(b.y)}. Schwab’s prime fund pays more, its Treasury fund escapes state tax. See which keeps more in your state.`,
+]);
+const faqs = [
+  { q: 'Is SWVXX or SNSXX better for a Californian?', a: `On the filed yields, for a single filer at $120,000, SWVXX left ${pct(rows[0].x.afterTaxYield)} and SNSXX ${pct(rows[0].y.afterTaxYield)} after federal and California tax. The prime fund’s higher yield is taxed by California in full; the Treasury fund’s is not taxed by California at all. Past yields, not advice.` },
+  { q: 'What is the risk difference between SWVXX and SNSXX?', a: `SNSXX holds only Treasury securities. SWVXX lends to banks and companies through commercial paper and certificates of deposit, about ${pct(a.comp.other ?? 0, 0)} of its portfolio, so it carries credit risk the Treasury fund does not, and as a retail prime fund it may charge a liquidity fee in stress.` },
+  { q: 'Does the answer change with income?', a: `Yes. A higher bracket raises the state tax saved by the Treasury fund and also the federal tax on both, which shrinks the gap in dollars. A low flat state rate, as in Pennsylvania at 3.07%, can leave the prime fund narrowly ahead. The calculator reruns the comparison for your income and state.` },
+];
+---
+<ToolPage id="swvxx-vs-snsxx" title={title} description={description} crumb="SWVXX vs SNSXX"
+  h1="SWVXX vs SNSXX: Schwab prime or Treasury, state by state"
+  lede={`Schwab Prime Advantage against Schwab U.S. Treasury, as filed for ${day(a.yDate)}. Not investment advice.`}
+  faqs={faqs} related={related('fund-swvxx', 'fund-snsxx', 'prime-vs-government-money-market-funds')} sources={src('nmfp', 'rule-2a7', 'ftb-ca', 'pa-pit', 'il-pub101')}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SNSXX" b="SWVXX" pick={false} methodHref={METHOD} id="c-ss" />
+  <div class="prose prose-slate mt-10 max-w-none">
+    <h2>A yield edge that state tax can erase</h2>
+    <p>SWVXX is a prime fund: it earns its extra yield by lending to banks and companies for days or weeks, and on the last filed day it paid {pct(a.y)} against {pct(b.y)} for SNSXX, which holds Treasury bills and notes only. Federal tax treats the two the same, as ordinary income. State tax does not. Almost none of the SWVXX dividend comes from U.S. obligations, so every state with an income tax taxes nearly all of it, while the SNSXX dividend is interest on Treasuries that states may not tax. Whether the prime fund’s yield edge survives therefore depends on your state rate. With $120,000 of taxable income as a single filer, the Treasury fund kept more in {snsWins.length ? snsWins.join(', ') : 'none of the states below'}, and the prime fund kept more in the others. The edge also depends on how long it lasts: prime yields move with bank funding conditions, and the gap between the two funds was not constant over the months on file.</p>
+  </div>
+  <section data-chrome class="prose prose-slate mt-8 max-w-none">
+    <h2>Which keeps more, by state</h2>
+    <div class="overflow-x-auto"><table>
+      <thead><tr><th>State</th><th class="text-right">SWVXX after tax</th><th class="text-right">SNSXX after tax</th><th>Keeps more</th></tr></thead>
+      <tbody>{rows.map((r) => <tr><td>{names[r.st]}</td><td class="tabular-nums text-right">{pct(r.x.afterTaxYield)}</td><td class="tabular-nums text-right">{pct(r.y.afterTaxYield)}</td><td>{r.win}{isNoTax(r.st) ? ' (no state tax)' : ''}</td></tr>)}</tbody>
+    </table></div>
+    <p>Single filer, $120,000 of taxable income, yields as filed.</p>
+  </section>
+  <FundPair tickers={['SWVXX', 'SNSXX']} heading="SWVXX and SNSXX side by side" />
+</ToolPage>

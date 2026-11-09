@@ -1,0 +1,49 @@
+---
+/**
+ * Section « Sources » de la page pilier — RECETTE-SITE.md §7.
+ * Au moins trois liens vers des textes officiels ; les URL viennent du fichier de
+ * paramètres, jamais codées en dur, pour rester synchronisées avec ce que le moteur
+ * applique et suivre la mise à jour annuelle.
+ *
+ * Prérequis : src/data/params-<année>.json contient un objet `sources`
+ *   { "<clé>": { "url": "...", "label": { "<lang>": "..." } } }
+ * Contrôlé par scripts/check-seo.py (échec si < 3 liens officiels sur le pilier).
+ */
+import P from '../data/params-2026.json';
+import { displayDate } from '../lib/format';
+import { LANG_TAGS } from '../data/site-config';
+// `intro` : phrase propre au site (check-portefeuille refuse la phrase commune recopiée d'un site à l'autre).
+interface Props { lang: string; intro?: string }
+const { lang, intro } = Astro.props;
+
+const INTRO: Record<string, string> = {
+  fr: 'Chaque chiffre de cette page provient d’une de ces sources officielles, consultées le',
+  de: 'Jede Zahl auf dieser Seite stammt aus einer dieser amtlichen Quellen, abgerufen am',
+  en: 'Every figure on this page comes from one of these official sources, read on',
+  es: 'Cada cifra de esta página procede de una de estas fuentes oficiales, consultadas el',
+  nl: 'Elk bedrag op deze pagina komt uit een van deze officiële bronnen, geraadpleegd op',
+  it: 'Ogni cifra di questa pagina proviene da una di queste fonti ufficiali, consultate il',
+  pt: 'Cada valor desta página provém de uma destas fontes oficiais, consultadas em',
+  nb: 'Hvert tall på denne siden kommer fra en av disse offisielle kildene, lest',
+  da: 'Hvert tal på denne side kommer fra en af disse officielle kilder, læst',
+};
+const H2: Record<string, string> = {
+  fr: 'Sources', de: 'Quellen', en: 'Sources', es: 'Fuentes',
+  nl: 'Bronnen', it: 'Fonti', pt: 'Fontes', nb: 'Kilder', da: 'Kilder',
+};
+type Src = { url: string; label: Record<string, string> };
+const sources: Src[] = Object.values((P as { sources?: Record<string, Src> }).sources ?? {});
+---
+{sources.length > 0 && (
+  <>
+    <h2 id="sources">{H2[lang] ?? H2.en}</h2>
+    {/* Gabarit littéral : « {A} {B} » perdait l'espace au rendu (« read on2026-11-07 ») et la date restait
+         au format machine (financecertcost.com, dumpfeesbystate.com, testeurs naïfs du 2026-11-08). */}
+    <p>{`${intro ?? INTRO[lang] ?? INTRO.en} ${/^\d{4}-\d{2}-\d{2}$/.test(P.retrieved_at) ? displayDate(P.retrieved_at, LANG_TAGS[lang] ?? lang) : P.retrieved_at}.`}</p>
+    <ul>
+      {sources.map((s) => (
+        <li><a href={s.url} rel="nofollow noopener" target="_blank">{s.label[lang] ?? s.label.en}</a></li>
+      ))}
+    </ul>
+  </>
+)}

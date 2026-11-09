@@ -1,0 +1,59 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+import MiniSim from '../../components/calc/MiniSim';
+import { FUNDS, fund, pct, bn, avgYield, HISTORY } from '../../lib/data';
+import { afterTax } from '../../lib/engine/tax';
+import { src, related, fundHref } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const munis = FUNDS.filter((f) => f.k === 'muni' || f.k === 'state-muni').sort((a, b) => b.assets - a.assets);
+const nat = avgYield((f) => f.k === 'muni'), st = avgYield((f) => f.k === 'state-muni'), gov = avgYield((f) => f.k === 'government');
+const ratio = nat.mean / gov.mean;
+const vms = fund('VMSXX'), vmf = fund('VMFXX'), vct = fund('VCTXX'), vus = fund('VUSXX');
+const cases = [60000, 150000, 300000, 800000].map((inc) => {
+  const s = { amount: 100000, state: 'CA', filing: 'single' as const, income: inc };
+  return { inc, vct: afterTax(vct, s), vus: afterTax(vus, s), vms: afterTax(vms, s) };
+});
+const vusWins = cases.filter((c) => c.vus.net >= Math.max(c.vct.net, c.vms.net)).length;
+const swing = (t: string) => { const ys = HISTORY[t].map((p) => p[1]); return [Math.min(...ys), Math.max(...ys)]; };
+const [lo, hi] = swing('VMSXX');
+const title = fitTitle(['Municipal Money Market Funds: Tax-Equivalent Yield Today', 'Municipal Money Market Funds: Tax-Equivalent Yield, as Filed']);
+const description = fitDesc([
+  `Municipal money market funds: national and single-state funds as filed, their tax-equivalent yield by bracket, and when they keep more than a Treasury fund after tax.`,
+  `Municipal money market funds: national and single-state funds as filed, their tax-equivalent yield by bracket, and when they keep more than a Treasury fund.`,
+]);
+const faqs = [
+  { q: 'Are municipal money fund dividends taxable?', a: `They are exempt from regular federal income tax when they come from municipal securities, which is the point of these funds. Your state generally taxes the part from other states’ bonds. A single-state fund’s dividends are exempt from that state’s tax for its residents. Part of a dividend can be subject to the alternative minimum tax.` },
+  { q: 'What is the tax-equivalent yield of a municipal fund?', a: `The yield a taxable fund would need to leave you the same amount after tax. For a national fund taxed by your state, divide its yield after state tax by one minus your federal and state rates. On ${pct(vms.y)}, at 35% federal plus the 3.8% surtax and no state tax, it is ${pct(vms.y / (1 - 0.388))}.` },
+  { q: 'Why are municipal money fund yields so volatile?', a: `They hold variable-rate demand notes whose rates reset weekly on a market index that moves with the supply of short municipal paper and with money flowing into and out of tax-exempt funds, for example around tax dates. Over the months on file VMSXX ranged from ${pct(lo)} to ${pct(hi)}.` },
+];
+---
+<GuideLayout lang="en" id="municipal-money-market-funds" title={title} description={description} breadcrumbLabel="Municipal funds"
+  h1="Municipal money market funds: when tax-exempt beats taxable"
+  intro="National and single-state tax-exempt funds as filed, and the arithmetic that decides whether their lower yield leaves you more."
+  faqs={faqs} related={related('fund-vmsxx', 'fund-vctxx', 'fund-vyfxx')} sources={src('nmfp', 'irs-rp', 'irs-niit', 'ftb-ca', 'ny-it201i')}>
+  <p>A municipal money market fund holds short-term debt of states, cities, school districts and public agencies, mostly variable-rate demand notes that the fund can sell back at par on a few days’ notice. Interest on that debt is exempt from regular federal income tax, and the fund passes the exemption to its shareholders. The price of the exemption is a lower yield. In the data behind this site, the {nat.n} national municipal share classes averaged a 7-day yield of {pct(nat.mean)}, the {st.n} single-state classes {pct(st.mean)}, and the {gov.n} government classes {pct(gov.mean)}. The municipal average was {Math.round(ratio * 100)}% of the government average. The lower that ratio, the higher the tax rate needed before the exemption pays for itself: at {Math.round(ratio * 100)}%, tax would have to take more than {pct(1 - ratio, 0)} of a taxable dividend. The question for any reader is simple to state: does the tax saved make up for the yield given up? The answer depends on two rates, federal and state, and on whether the fund’s bonds come from your own state.</p>
+
+  <div data-simulateur-secondaire><MiniSim client:load kind="tey" href="/en/" /></div>
+
+  <h2>National funds and single-state funds</h2>
+  <p>A national fund such as Vanguard Municipal (VMSXX) buys from issuers across the country. Its dividend escapes federal tax, but most states tax the part that comes from other states’ bonds, so for most readers the dividend is federally exempt and state-taxable. Each year the fund publishes the share of its income from each state, and residents of a state with a large share can exempt that slice. This site treats the whole national-fund dividend as state-taxable, the cautious case.</p>
+  <p>A single-state fund buys only from issuers in one state, usually California, New York, Massachusetts or New Jersey, where both taxes are high enough to justify a dedicated fund. For a resident of that state the dividend is free of both federal and state tax; New York funds also escape New York City tax. For anyone else the single-state fund is a national fund with fewer issuers to choose from. In the data the single-state classes averaged {pct(st.mean)} and the national ones {pct(nat.mean)}; residents of high-tax states compete for a limited supply of their own state’s short paper, which tends to hold single-state yields down.</p>
+
+  <h2>A worked case in California</h2>
+  <p>Take $100,000 held by a single Californian, and compare three funds: the California municipal fund VCTXX ({pct(vct.y)} as filed), the national municipal fund VMSXX ({pct(vms.y)}) and the Treasury fund VUSXX ({pct(vus.y)}), whose dividend California does not tax. The after-tax yields at four income levels:</p>
+  <div data-chrome class="overflow-x-auto"><table>
+    <thead><tr><th>Taxable income</th><th class="text-right">VCTXX</th><th class="text-right">VMSXX</th><th class="text-right">VUSXX</th><th>Keeps most</th></tr></thead>
+    <tbody>{cases.map((c) => { const best = [['VCTXX', c.vct.net], ['VMSXX', c.vms.net], ['VUSXX', c.vus.net]].sort((a, b) => (b[1] as number) - (a[1] as number))[0][0]; return <tr><td class="tabular-nums">${c.inc.toLocaleString('en-US')}</td><td class="tabular-nums text-right">{pct(c.vct.afterTaxYield)}</td><td class="tabular-nums text-right">{pct(c.vms.afterTaxYield)}</td><td class="tabular-nums text-right">{pct(c.vus.afterTaxYield)}</td><td>{best}</td></tr>; })}</tbody>
+  </table></div>
+  <p>With the yields filed this year, the Treasury fund keeps the most at {vusWins} of these four incomes: California does not tax its dividend either, and its yield is far higher. The municipal funds close the gap as the federal rate climbs. If municipal yields rise relative to taxable ones, the single-state fund overtakes the Treasury fund first in the top brackets. That is the kind of change the filed data shows month by month.</p>
+
+  <h2>Taxes the calculators do not model</h2>
+  <p>Some municipal funds hold private activity bonds, whose interest is a preference item for the alternative minimum tax. Since the 2017 tax law raised the exemption, few households pay that tax, but those who do should check the share of AMT income in the fund’s year-end letter. The calculators here also ignore the phase-outs and credits that make a real marginal rate differ from the bracket rate. And municipal funds held in a tax-deferred account waste their exemption: inside an IRA, compare funds on yield alone.</p>
+
+  <h2>Municipal funds in the data</h2>
+  <div data-chrome class="overflow-x-auto"><table>
+    <thead><tr><th>Fund</th><th>State</th><th class="text-right">7-day yield</th><th class="text-right">Assets</th></tr></thead>
+    <tbody>{munis.slice(0, 12).map((f) => { const h = fundHref(f.t); return <tr><td>{h ? <a href={h}>{f.t}</a> : f.t} {f.name}</td><td>{f.st ?? 'National'}</td><td class="tabular-nums text-right">{pct(f.y)}</td><td class="tabular-nums text-right">{bn(f.assets)}</td></tr>; })}</tbody>
+  </table></div>
+  <p>The twelve largest of the {munis.length} retail municipal share classes, 7-day yields as filed. Vanguard Federal (VMFXX), for comparison, filed {pct(vmf.y)}.</p>
+</GuideLayout>

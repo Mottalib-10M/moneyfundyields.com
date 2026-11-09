@@ -1,0 +1,21 @@
+{
+ "name": "Money Fund Yields",
+ "short_name": "Money Fund Yields",
+ "description": "7-day yields of US money market funds as filed in Form N-MFP, holdings by quarter end, and the yield left after federal and state income tax.",
+ "start_url": "/en/",
+ "display": "standalone",
+ "background_color": "#ffffff",
+ "theme_color": "#1F5C4A",
+ "icons": [
+  {
+   "src": "/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

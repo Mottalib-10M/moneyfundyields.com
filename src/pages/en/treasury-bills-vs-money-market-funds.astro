@@ -1,0 +1,43 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import { FUNDS, TBILLS, fund, pct, usd, day, drag } from '../../lib/data';
+import { src, related, METHOD, PAGE_FUNDS, fundHref } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const vus = fund('VUSXX');
+const tonly = FUNDS.filter((f) => f.k === 'treasury-only').sort((a, b) => b.y - a.y);
+const best = tonly[0];
+const bills: Array<[string, number]> = [['4-week bill', TBILLS.w4], ['13-week bill', TBILLS.w13], ['26-week bill', TBILLS.w26], ['52-week bill', TBILLS.w52]];
+const title = fitTitle(['Treasury Bills vs Money Market Funds: Yield After Tax', 'Treasury Bills vs Money Market Funds: Yields After Tax']);
+const description = fitDesc([
+  `Treasury bills vs money market funds: the 4-week bill at ${pct(TBILLS.w4)} on ${day(TBILLS.date)} against Treasury funds as filed, after federal and state tax for you.`,
+  `Treasury bills vs money market funds: the 4-week bill at ${pct(TBILLS.w4)} on ${day(TBILLS.date)} against Treasury funds as filed, after your federal and state tax.`,
+]);
+const faqs = [
+  { q: 'Are Treasury bills taxed by states?', a: `No. Interest on Treasury bills is exempt from state and local income tax in every state, by federal law, and there is no 50% test for a bill you own directly. It is taxed federally as ordinary income in the year the bill matures or is sold, not month by month as fund dividends are.` },
+  { q: 'Why does a bill yield more than a Treasury money fund?', a: `A fund deducts its expenses, ${pct(drag(vus) ?? 0)} at VUSXX on the filed figures, and holds bills of mixed maturities, some bought when rates were different. A bill bought today locks in today’s rate until it matures. When rates fall the fund lags downward; when they rise it lags upward.` },
+  { q: 'What does coupon-equivalent mean on a bill rate?', a: `Bills are sold at a discount and repaid at face value. The Treasury publishes both the discount rate and a coupon-equivalent rate, which restates the return on the price paid over a 365-day year, comparable with a money fund’s 7-day yield. This page uses the coupon-equivalent figure.` },
+];
+---
+<ToolPage id="treasury-bills-vs-money-market-funds" title={title} description={description} crumb="T-bills vs money funds"
+  h1="Treasury bills vs money market funds, after tax"
+  lede={`Daily bill rates from the Treasury for ${day(TBILLS.date)} against Treasury money funds as filed. Not investment advice.`}
+  faqs={faqs} related={related('fund-vusxx', 'fund-fdlxx', 'seven-day-yield')} sources={[{ name: 'U.S. Department of the Treasury, daily Treasury bill rates', url: TBILLS.source }, ...src('nmfp', 'irs-rp', 'rule-2a7')]}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VUSXX" alt={{ kind: 'bill', label: 'Treasury bill', defYield: TBILLS.w4, help: `4-week rate on ${day(TBILLS.date)}: ${pct(TBILLS.w4)}` }} methodHref={METHOD} id="c-tb" />
+  <div class="prose prose-slate mt-10 max-w-none">
+    <h2>The same tax treatment, different mechanics</h2>
+    <p>A Treasury bill and a Treasury-only money fund pay income from the same source, so the tax side of the comparison is short: federal income tax on both, no state tax on either, as long as the fund holds Treasuries directly rather than through repo. The difference is in the mechanics and in cost. A bill bought at auction or from a broker pays the rate fixed on the day of purchase until it matures, four weeks to a year later, and then has to be rolled into a new one. A fund does that rolling every day across its whole portfolio, keeps a share price of $1.00, lets you sell on any business day, and charges for it. On {day(TBILLS.date)} the 4-week bill paid {pct(TBILLS.w4)} on a coupon-equivalent basis. For {day(vus.yDate)}, about a week earlier, the highest-yielding retail Treasury-only fund in the data, {best.t}, filed {pct(best.y)} and VUSXX {pct(vus.y)}. On {usd(50000)} the difference between the bill and VUSXX is about {usd((TBILLS.w4 - vus.y) * 50000)} a year before tax, if the rates held for a year, which they will not exactly.</p>
+    <p>One more difference: a fund’s yield trails market rates. Its bills were bought over the past weeks, so when the Federal Reserve cuts, the fund keeps paying the older, higher rates for a while; when it raises, the fund catches up with a delay. A bill fixes one rate for its term.</p>
+  </div>
+  <section data-chrome class="prose prose-slate mt-8 max-w-none">
+    <h2>Bill rates and Treasury-only funds</h2>
+    <div class="overflow-x-auto"><table>
+      <thead><tr><th>Instrument</th><th class="text-right">Yield</th><th>Date</th></tr></thead>
+      <tbody>
+        {bills.map(([l, v]) => <tr><td>{l} (coupon-equivalent)</td><td class="tabular-nums text-right">{pct(v)}</td><td>{day(TBILLS.date)}</td></tr>)}
+        {tonly.slice(0, 6).map((f) => { const h = fundHref(f.t); return <tr><td>{h ? <a href={h}>{f.t}</a> : f.t} {f.name}</td><td class="tabular-nums text-right">{pct(f.y)}</td><td>{day(f.yDate)}</td></tr>; })}
+      </tbody>
+    </table></div>
+    <p>Bill rates: Treasury daily bill rates. Fund yields: 7-day net yields as filed in Form N-MFP. Six highest of the {tonly.length} retail Treasury-only share classes in the data.</p>
+  </section>
+</ToolPage>

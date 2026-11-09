@@ -1,0 +1,18 @@
+---
+/** Frame of a page that opens on a calculator (fund, comparison, state): H1, one-line answer, then the slot. */
+import PageLayout from '../layouts/PageLayout.astro';
+import { route } from '../i18n/routes';
+import { t as ui } from '../i18n/ui';
+import { webApplicationSchema, webPageSchema, breadcrumbSchema, faqSchema, type FAQItem } from '../lib/seo';
+interface Props { id: string; title: string; description: string; h1: string; lede: string; faqs: FAQItem[]; related: Array<{ href: string; name: string; description: string }>; sources: Array<{ name: string; url: string }>; crumb: string }
+const { id, title, description, h1, lede, faqs, related, sources, crumb } = Astro.props;
+const path = route(id, 'en');
+const jsonLd = [webApplicationSchema({ name: h1, description, path, lang: 'en' }), webPageSchema({ name: h1, description, path, lang: 'en' }),
+  breadcrumbSchema([{ name: ui('en').breadcrumbHome, path: route('home', 'en') }, { name: crumb, path }])];
+if (faqs.length) jsonLd.push(faqSchema(faqs, 'en'));
+---
+<PageLayout title={title} description={description} lang="en" jsonLd={jsonLd} faqs={faqs} related={related} sources={sources} breadcrumbs={[{ label: crumb }]}>
+  <h1 class="text-3xl font-bold text-navy-900 md:text-4xl">{h1}</h1>
+  <p data-chrome class="mb-5 mt-2 text-navy-700">{lede}</p>
+  <slot />
+</PageLayout>

@@ -1,0 +1,45 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import { route } from '../../i18n/routes';
+import { webPageSchema, breadcrumbSchema } from '../../lib/seo';
+import { FUNDS, META, PARAMS, fund, pct, day, monthName } from '../../lib/data';
+import { src } from '../../lib/common';
+const lang = 'en';
+const path = route('method', lang);
+const vmf = fund('VMFXX'), vmr = fund('VMRXX'), vus = fund('VUSXX');
+const kinds = FUNDS.reduce((m, f) => ({ ...m, [f.k]: (m[f.k] ?? 0) + 1 }), {} as Record<string, number>);
+const title = 'Method: Form N-MFP yields, holdings and after-tax figures';
+const description = 'How Money Fund Yields reads Form N-MFP filings, classifies holdings, applies the 50% test and income tax, how often it updates, and where its estimates fail.';
+const sources = src('nmfp', 'nmfp-archive', 'rule-2a7', 'irs-rp', 'irs-niit', 'ftb-ca', 'ftb-ca-rates', 'ny-it201i', 'ct-ps', 'ct-olr', 'nj-git5', 'nj-1040', 'pa-pit', 'il-pub101', 'il-rate', 'fhlb-statute');
+---
+<PageLayout title={title} description={description} lang={lang} jsonLd={[webPageSchema({ name: title, description, path, lang }), breadcrumbSchema([{ name: 'Home', path: route('home', lang) }, { name: 'Method', path }])]} breadcrumbs={[{ label: 'Method' }]} sources={sources}>
+  <article class="prose prose-slate max-w-none">
+    <h1>Data and method</h1>
+    <p>Every figure on this site comes from two kinds of public documents: the monthly reports that money market funds file with the Securities and Exchange Commission on Form N-MFP, and the tax schedules and rules published by the IRS and by state tax agencies. This page says how they are read and combined, how fresh they are, and what they cannot tell you.</p>
+
+    <h2>Fund data: Form N-MFP, as filed</h2>
+    <p>Each registered money market fund files Form N-MFP within five business days after the end of every month. The report lists every holding with its issuer, category, maturity and value; the fund’s weighted average maturity and life; the assets, minimum initial investment and 7-day net yield of each share class for every business day of the month; and the fund’s gross 7-day yield. The Commission publishes the reports as filed, one by one in its archive, and as monthly data sets.</p>
+    <p>The current data combines the four monthly data sets covering June to September 2026 and the {META.series} individual reports for {monthName(META.month.slice(0, 7))} filed between {day(META.filedFrom)} and {day(META.filedTo)}. Downloads identify the site and its contact address to the Commission’s servers, follow the Commission’s published rate limits, and are replayable with the script kept with the site’s source. Figures are used as filed: if a fund amends a report, the amendment appears at the next update.</p>
+
+    <h2>Which share classes are included</h2>
+    <p>The comparator lists share classes that a retail investor can realistically buy: classes of government and Treasury funds, and classes flagged as retail for prime and municipal funds, with a minimum initial investment of $100,000 or less, at least $50 million of assets, and a ticker in the Commission’s list of fund tickers. That leaves {META.classes} share classes of {META.series} funds: {Object.entries(kinds).map(([k, n]) => `${n} ${k}`).join(', ')}. Institutional prime and institutional municipal funds are left out, since they float their price and are not sold to individuals.</p>
+
+    <h2>Fund types</h2>
+    <p>The type shown on each page comes from the category the fund reports and from its holdings: municipal funds from their category (single-state when the fund reports itself as single-state, the state being read from its name), prime funds from theirs; a government fund is labelled Treasury-only when 99% or more of its holdings are Treasury securities, Treasury when 99% or more are Treasuries and repo backed by Treasuries, and government otherwise.</p>
+
+    <h2>The share exempt from state tax</h2>
+    <p>Each holding is classed as Treasury, exempt agency (Federal Home Loan Banks, Farm Credit Banks, Tennessee Valley Authority), other agency (including Fannie Mae and Freddie Mac), repo by type of collateral, municipal, or other. The share of U.S. obligations is Treasuries plus exempt agencies, divided by total holdings at reported value. Repo never counts, whatever its collateral, because its interest is paid by the borrower. The same share at the June 30 and September 30 reports is used for the 50% test of California, Connecticut and New York.</p>
+    <p>This is an estimate from holdings on one day. A fund’s year-end tax letter gives the share of income for the whole year, and the two can differ. For 2024, Vanguard reported 59.87% for VMFXX, 63.61% for VMRXX and 100% for VUSXX; the holdings at the end of the latest month give {pct(vmf.usob, 1)}, {pct(vmr.usob, 1)} and {pct(vus.usob, 1)}. The gap for VMFXX and VMRXX, more than ten points, comes from changes in the mix during the year and from the different rates earned on each kind of holding. Every calculator has a field to replace the estimate with the letter’s figure.</p>
+    <p>The law applies the 50% test at the close of each quarter of the fund’s own tax year. This site reads calendar quarter ends, and only those present in the data ({META.quarters.join(' and ')}). For a fund close to 50%, the fund company’s statement decides.</p>
+
+    <h2>Federal and state tax</h2>
+    <p>Federal tax uses the 2026 brackets of IRS Revenue Procedure 2025-32 at your taxable income, plus the 3.8% net investment income tax above $200,000 of income for a single filer and $250,000 for a joint return. The site treats your taxable income as the base for both, a simplification. State tax uses the {PARAMS.states.CA.year} schedules of California (with the 1% surcharge above $1 million), New York (with New York City rates when you select it), Connecticut, New Jersey, Pennsylvania and Illinois, read from each state’s instructions or from the Connecticut General Assembly’s comparison of seven states. California, Connecticut and New York apply the 50% test; New Jersey, Pennsylvania and Illinois exempt the federal share in proportion. Nine states have no tax on interest and dividends. For every other state the site does not carry a schedule or a verified rule: it asks for your rate and assumes the federal share is exempt in proportion, which is the most common treatment, and the result says so.</p>
+    <p>Municipal funds are treated as free of federal tax. A single-state municipal fund is treated as free of state tax in its own state and fully taxable elsewhere; a national municipal fund is treated as fully taxable by your state. The alternative minimum tax, phase-outs, credits and deductions are not modelled.</p>
+
+    <h2>Freshness and updates</h2>
+    <p>The yields are those of the last business day of the reported month. Reports arrive in the first week of the following month, so on the day of an update the figures are about a week old, and just before the next one about five weeks old. The update is run by hand: download, rebuild, checks, publication. There is no automatic daily feed, and this site does not promise a fixed date. The date of the latest update appears at the bottom of every page. Treasury bill rates come from the Treasury’s daily bill rates and carry their own date.</p>
+
+    <h2>What this site does not do</h2>
+    <p>It does not recommend funds, does not say which fund to buy, and is not an investment adviser. It ranks past yields as filed and applies published tax rules to the situation you type. It is not affiliated with the Securities and Exchange Commission, the IRS, any state or any fund company, and it receives nothing from them. Errors can be reported through the <a href={route('contact', lang)}>contact page</a>; corrections are listed in the <a href={route('editorial', lang)}>editorial policy</a>.</p>
+  </article>
+</PageLayout>

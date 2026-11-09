@@ -1,0 +1,37 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import LegalIdentity from '../../components/LegalIdentity.astro';
+import { AUTHOR_NAME, CLARITY_ID, CONTACT_EMAIL, GA4_ID, LAST_UPDATED, LEGAL, SITE_NAMES, SITE_URL } from '../../data/site-config';
+import { route } from '../../i18n/routes';
+const lang = 'en';
+const title = `Legal notice – ${SITE_NAMES[lang]}`;
+const description = 'Publisher, editor in charge, host, no advice, intellectual property, personal data and governing law for this site.';
+---
+{/* Page générée par scripts/gen-legal-pages.py (trame, décision GA4 du 2026-10-17). Ne pas
+     retoucher à la main : relancer le script. Un passage propre au site se garde entre
+     les marqueurs site:debut et site:fin. */}
+<PageLayout title={title} description={description} lang={lang} noindex={true} breadcrumbs={[{ label: 'Legal notice' }]} showAuthor={false}>
+  <div class="prose prose-slate max-w-none">
+    <h1>Legal notice</h1>
+    <p>Information about the publisher and the conditions of use of {SITE_URL}.</p>
+    <h2>Publisher</h2>
+    <LegalIdentity lang={lang} />
+    <p>Editor in charge: {AUTHOR_NAME}, responsible for the content published on {SITE_URL}.</p>
+    <h2>Host</h2>
+    <LegalIdentity mode="hosting" lang={lang} />
+    <h2>Purpose of the site and no advice</h2>
+    <p>The site offers free calculators and guides for information. Results are estimates based on the official rules and rates cited on each page; they are neither personal advice, nor a decision, nor a commitment by any authority. Method and limits: <a href={route('method', lang)}>method</a>.</p>
+    <h2>Liability</h2>
+    <p>Parameters are updated and calculations checked against reference cases, with no guarantee that errors are absent. The publisher is not liable for a decision made on an estimate alone. Please report errors through the <a href={route('contact', lang)}>contact page</a>.</p>
+    <h2>Intellectual property</h2>
+    <p>Texts, design and code belong to the publisher; short quotations with a link to the original page are welcome.</p>
+    {/* gen-legal-pages:terms */}
+    <h2>Personal data and cookies</h2>
+    {GA4_ID ? (<p>What you type in the calculators stays in your browser. The site sets Google Analytics audience measurement cookies (<code>_ga</code>, <code>_ga_{GA4_ID.replace('G-', '')}</code>, 13 months at most), with no advertising{CLARITY_ID && '; page stability is monitored with Microsoft Clarity, cookie-free'}. Details, legal basis and how to object: <a href={route('privacy', lang)}>privacy policy</a> and <a href={route('cookies', lang)}>cookies</a> page.</p>) : (<p>What you type in the calculators stays in your browser and the site sets no cookies{CLARITY_ID && '; page stability is monitored anonymously with Microsoft Clarity, cookie-free'}. See the <a href={route('privacy', lang)}>privacy policy</a> and the <a href={route('cookies', lang)}>cookies</a> page.</p>)}
+    {/* /gen-legal-pages:terms */}
+    <h2>Reporting content</h2>
+    <p>Report unlawful content to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>, with the page address and the reason.</p>
+    <h2>Governing law</h2>
+    <p>French law. Failing an amicable settlement, the competent courts of {LEGAL.jurisdiction}. Last updated: {LAST_UPDATED}.</p>
+  </div>
+</PageLayout>

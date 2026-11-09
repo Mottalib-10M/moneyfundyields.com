@@ -1,0 +1,47 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+import MiniSim from '../../components/calc/MiniSim';
+import { fund, pct, usd, day, COMP_LABEL, META } from '../../lib/data';
+import { afterTax } from '../../lib/engine/tax';
+import { src, related } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const vmf = fund('VMFXX'), vmr = fund('VMRXX'), vus = fund('VUSXX');
+const LETTER = { VMFXX: 0.5987, VMRXX: 0.6361, VUSXX: 1 } as const;
+const sit = { amount: 50000, state: 'CA', filing: 'single' as const, income: 120000 };
+const est = afterTax(vmf, sit), let_ = afterTax(vmf, { ...sit, exemptOverride: LETTER.VMFXX });
+const title = fitTitle(['U.S. Government Obligations Percentage on a Fund Tax Letter', 'U.S. Government Obligations Percentage: Fund Tax Letters']);
+const description = fitDesc([
+  `The U.S. government obligations percentage on a money fund’s tax letter: what it measures, where it goes on a state return, and why it differs from holdings.`,
+  `The U.S. government obligations percentage on a money fund’s year-end tax letter: what it measures, where it goes on a state return, and why it differs from holdings.`,
+]);
+const faqs = [
+  { q: 'Where do I find the U.S. government obligations percentage?', a: `In the year-end tax information the fund company publishes in January or February, often as a supplement to Form 1099-DIV titled U.S. government obligations income or state tax information. It lists one percentage per fund. Your Form 1099-DIV itself does not show it.` },
+  { q: 'Do I apply the percentage to all my dividends from the fund?', a: `To the ordinary dividends from that fund for the year, as reported on Form 1099-DIV. Multiply the dividends by the percentage to get the amount to subtract on your state return, provided the fund met any threshold your state requires, such as the 50% test of California, Connecticut and New York.` },
+  { q: 'Why is the letter lower than the Treasury share of the fund?', a: `Because repo income does not count, and because the letter covers income over the whole year while holdings describe one day. Vanguard Federal reported 59.87% for 2024 while its holdings at the end of ${day(META.month).replace(/ \d+,/, '')} suggest about ${pct(vmf.usob, 0)}; the mix and the rates on each type of holding change during the year.` },
+  { q: 'Does the percentage apply to a fund held in an IRA?', a: `No. Dividends inside an IRA, a 401(k) or another tax-deferred account are not taxed year by year, so there is nothing to subtract. Withdrawals are taxed later as ordinary income by the federal government and most states, and the fund’s exemption does not follow the money out.` },
+];
+---
+<GuideLayout lang="en" id="us-government-obligations-percentage" title={title} description={description} breadcrumbLabel="Tax letter %"
+  h1="The U.S. government obligations percentage on your fund’s tax letter"
+  intro="One percentage per fund, published after year end, decides how much of your money fund dividend your state can tax."
+  faqs={faqs} related={related('fifty-percent-rule', 'new-jersey', 'illinois')} sources={src('ftb-ca', 'ny-it201i', 'nj-git5', 'il-pub101', 'pa-pit')}>
+  <p>Every January or February, money fund companies publish a short table that most shareholders never open: for each fund, the percentage of the year’s ordinary dividends that came from obligations of the United States. That figure is what a state return needs. Federal law forbids states to tax interest on U.S. obligations, so the part of a fund dividend earned on Treasuries and on a few agencies’ debt can be subtracted from state income. Form 1099-DIV does not show it: the 1099 reports the total dividend, and the subtraction has to be worked out from the company’s supplement. The figure is often lower than investors expect. For 2024, Vanguard reported 59.87% for Vanguard Federal (VMFXX), 63.61% for Vanguard Cash Reserves Federal (VMRXX) and 100% for Vanguard Treasury (VUSXX). The rest of each dividend, from repurchase agreements and other holdings, was taxable by states. On $3,000 of dividends from VMFXX, the subtraction would be about {usd(3000 * LETTER.VMFXX)}; at a 9.3% state rate, that saves about {usd(3000 * LETTER.VMFXX * 0.093)} of tax.</p>
+
+  <div data-simulateur-secondaire><MiniSim client:load kind="letter" href="/en/" /></div>
+
+  <h2>What the percentage measures</h2>
+  <p>The letter percentage is a ratio of income, not of assets. It divides the fund’s income from qualifying obligations during the year by its total distributable income. Two things make it differ from a snapshot of holdings. First, the mix changes: a fund can hold more repo in one quarter and more bills in another. Second, different holdings earn different rates: if repo paid more than bills during the year, repo’s share of income is larger than its share of assets. The holdings estimate this site computes from the latest Form N-MFP report is therefore an approximation, useful to compare funds before the year ends and to spot funds with very little exempt income. It is not a figure to put on a return.</p>
+  <p>The gap can be wide. At the end of the latest reported month, VMFXX held about {pct(vmf.usob, 0)} of its portfolio in Treasuries and exempt agency debt, against 59.87% of income in the 2024 letter; VMRXX held about {pct(vmr.usob, 0)}, against 63.61%; VUSXX held {pct(vus.usob, 0)}, matching its 100%. The holdings breakdown of VMFXX was:</p>
+  <div data-chrome class="overflow-x-auto"><table>
+    <thead><tr><th>Holding</th><th class="text-right">Share of portfolio</th></tr></thead>
+    <tbody>{Object.entries(vmf.comp).sort((a, b) => b[1] - a[1]).map(([k, v]) => <tr><td>{COMP_LABEL[k]}</td><td class="tabular-nums text-right">{pct(v, 1)}</td></tr>)}</tbody>
+  </table></div>
+
+  <h2>How each state uses it</h2>
+  <p>In California, Connecticut and New York, the percentage applies only if the fund held at least 50% of its assets in qualifying obligations at the close of each quarter; fund companies usually say on the same page whether that was the case. In California the subtraction goes on Schedule CA (540); in New York on the line of Form IT-201 for interest income on U.S. government bonds. New Jersey applies the percentage without a threshold for federal obligations, according to its GIT-5 publication, and has a separate rule for qualified investment funds holding 80% or more in New Jersey-exempt obligations. Pennsylvania and Illinois apply it without a threshold. Illinois Publication 101 lists which federal agencies’ interest qualifies and confirms that repo income does not. A few states, and the treatment of some agencies, differ; the instructions of your own state’s return are the authority.</p>
+  <p>The difference this makes is easy to underestimate. Take a single Californian with $120,000 of taxable income and $50,000 in VMFXX. Using the holdings estimate, the calculator gives {pct(est.afterTaxYield)} after federal and California tax. Entering the 2024 letter figure of 59.87% instead gives {pct(let_.afterTaxYield)}, a difference of {usd(est.net - let_.net)} a year. Every calculator on this site has a field for the letter percentage under “Have the fund’s year-end tax statement?”; enter it once the company has published it.</p>
+
+  <h2>Practical points</h2>
+  <p>The percentage applies to ordinary dividends from the fund, not to capital gains distributions, which money funds rarely pay. If you held the fund for only part of the year, most companies still publish one percentage for the whole year, and that is what you apply. If you hold several funds, each has its own percentage. If you hold the fund through a brokerage that is not the fund company, the brokerage’s tax package may reprint the table or link to it. And if the fund failed the 50% test in your state, the percentage is published anyway; it simply cannot be used in California, Connecticut or New York for that year.</p>
+  <p>The letters for 2026 will be published early in 2027. Until then, the holdings estimate and the quarter-end test on each fund page are the best guide to what the letter will say: a fund whose Treasury and exempt agency share stayed far above 50% all year is likely to qualify, and one that sat below it is likely not to.</p>
+</GuideLayout>

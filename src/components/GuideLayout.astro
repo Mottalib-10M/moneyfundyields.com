@@ -1,0 +1,30 @@
+---
+import { meneParSimu } from '../lib/mene-par-simu';
+import { LANG_TAGS as __LT } from '../data/site-config';
+import { displayDate } from '../lib/format';
+import PageLayout from '../layouts/PageLayout.astro';
+import { route, type Locale } from '../i18n/routes';
+import { t } from '../i18n/ui';
+import { articleSchema, faqSchema, breadcrumbSchema, webPageSchema, type FAQItem } from '../lib/seo';
+import { LAST_UPDATED, AUTHOR_NAME } from '../data/site-config';
+interface Props { lang: Locale; id: string; title: string; h1: string; description: string; intro: string; resume?: string; faqs?: FAQItem[]; related?: Array<{ href: string; name: string; description: string }>; sources?: Array<{ name: string; url: string }>; breadcrumbLabel: string; noindex?: boolean; showAuthor?: boolean }
+const { lang, id, title, h1, description, intro, resume, faqs = [], related = [], sources = [], breadcrumbLabel, noindex = false, showAuthor = true } = Astro.props;
+const ui = t(lang);
+const path = route(id, lang);
+const jsonLd = [articleSchema({ title: h1, description, path, lang }), webPageSchema({ name: h1, description, path, lang }), breadcrumbSchema([{ name: t(lang).breadcrumbHome, path: route('home', lang) }, { name: breadcrumbLabel, path }])];
+if (faqs.length) jsonLd.push(faqSchema(faqs, lang));
+// Page de lecture : date en haut, à droite du fil d'Ariane, sauf si le guide s'ouvre sur un
+// simulateur (< 250 mots avant le premier champ) : elle ne passe jamais au-dessus (RECETTE §8.4, 2026-10-15).
+const corpsRendu = Astro.slots.has('default') ? await Astro.slots.render('default') : '';
+const dateEnHaut = !meneParSimu(`${intro ?? ''} ${resume ?? ''}`, corpsRendu);
+---
+<PageLayout title={title} description={description} lang={lang} jsonLd={jsonLd} faqs={faqs} related={related} sources={sources} breadcrumbs={[{ label: breadcrumbLabel }]} noindex={noindex} showAuthor={showAuthor} dateEnHaut={dateEnHaut}>
+  <article>
+    <header class="mb-8"><h1 class="text-3xl font-bold text-navy-900 md:text-4xl">{h1}</h1>{intro && <p class="mt-3 text-lg text-navy-600">{intro}</p>}
+      <p class="mt-4 text-sm text-navy-500">{ui.reviewedBy} <a href={route('about', lang)} class="text-accent-600 hover:underline">{AUTHOR_NAME}</a> · <a href={route('editorial', lang)} class="text-accent-600 hover:underline">{ui.editorialPolicy}</a></p></header>
+    {/* §21 : le paragraphe citable vit dans le corps, jamais dans le <header>,
+        que les moteurs traitent comme un ornement et que check-seo retire. */}
+    {resume && <p class="mb-6 text-navy-700">{resume}</p>}
+    <div class="prose prose-slate max-w-none"><slot /></div>
+  </article>
+</PageLayout>

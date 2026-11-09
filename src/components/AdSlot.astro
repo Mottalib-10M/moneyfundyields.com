@@ -1,0 +1,6 @@
+---
+/** Emplacement publicitaire (AdSense chargé après première interaction, jamais au-dessus du calculateur). */
+interface Props { slot: string }
+const { slot } = Astro.props;
+---
+<div class="ad-slot my-8 min-h-[90px] rounded-lg border border-dashed border-navy-200 text-center text-xs text-navy-300" data-ad-slot={slot} aria-hidden="true"></div>

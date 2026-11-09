@@ -1,0 +1,45 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import { FUNDS, fund, pct, day, avgYield, KIND_LABEL } from '../../lib/data';
+import { afterTax } from '../../lib/engine/tax';
+import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const kinds = ['prime', 'government', 'treasury', 'treasury-only'] as const;
+const stats = kinds.map((k) => {
+  const fs = FUNDS.filter((f) => f.k === k);
+  const s = (st: string) => fs.reduce((t, f) => t + afterTax(f, { amount: 50000, state: st, filing: 'single', income: 120000 }).afterTaxYield, 0) / fs.length;
+  const gross = fs.filter((f) => f.g != null);
+  return { k, ...avgYield((f) => f.k === k), g: gross.reduce((t, f) => t + (f.g ?? 0), 0) / Math.max(1, gross.length), ca: s('CA'), tx: s('TX') };
+});
+const prime = stats[0], gov = stats[1];
+const spr = fund('SPRXX');
+const title = fitTitle(['Prime vs Government Money Market Funds: Yield After Tax', 'Prime vs Government Money Market Funds: Yields After Tax']);
+const description = fitDesc([
+  `Prime vs government money market funds: average yields of ${prime.n} prime and ${gov.n} government share classes as filed, and what each keeps after your state tax.`,
+  `Prime vs government money market funds: average 7-day yields of ${prime.n} prime and ${gov.n} government share classes as filed, and what each keeps for you after tax.`,
+]);
+const faqs = [
+  { q: 'What is a prime money market fund?', a: `A fund that may hold, besides government securities, short-term debt of banks and companies: commercial paper, certificates of deposit, and repo backed by collateral other than government securities. Rule 2a-7 limits its maturity and credit quality. Retail prime funds keep a $1.00 share price; institutional prime funds float their price.` },
+  { q: 'Why do prime funds not pay much more than government funds?', a: `On the filed data the average gross yield, before expenses, was ${pct(prime.g)} for prime funds and ${pct(gov.g)} for government funds. Short bank and company paper pays only slightly more than Treasury bills in calm markets, and some retail prime classes carry higher expenses, which narrows the gap further.` },
+  { q: 'Can a prime fund charge a fee to sell?', a: `A retail prime fund may impose a discretionary liquidity fee of up to 2% if its board decides it is in the fund’s interest. Government funds are not required to have fees. Institutional prime funds face a mandatory fee when daily net redemptions exceed 5% of assets, under the 2023 amendments to rule 2a-7.` },
+];
+---
+<ToolPage id="prime-vs-government-money-market-funds" title={title} description={description} crumb="Prime vs government"
+  h1="Prime vs government money market funds after tax"
+  lede={`Averages of the retail share classes in the data, 7-day yields as filed for ${day(spr.yDate)}. Not investment advice.`}
+  faqs={faqs} related={related('swvxx-vs-snsxx', 'fund-sprxx', 'money-market-fund-rules')} sources={src('nmfp', 'rule-2a7', 'ftb-ca', 'irs-rp')}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SPRXX" b="SPAXX" methodHref={METHOD} id="c-pg" />
+  <div class="prose prose-slate mt-10 max-w-none">
+    <h2>A small premium, taxed in full by states</h2>
+    <p>The case for a prime fund is a higher yield for a little more credit risk. In the data behind this site {prime.mean > gov.mean ? 'the premium is small' : 'there was no premium at all on average'}. The {prime.n} retail prime share classes averaged a 7-day net yield of {pct(prime.mean)}, against {pct(gov.mean)} for the {gov.n} government classes and {pct(stats[3].mean)} for the Treasury-only ones: simple averages, one figure per class, so a few expensive classes pull each average down. State tax then works against the prime funds, because almost none of their income comes from obligations that states may not tax. Averaged the same way for a single Californian with $120,000 of income, prime classes left {pct(prime.ca)} after tax and government classes {pct(gov.ca)}; in Texas, with no income tax, {pct(prime.tx)} and {pct(gov.tx)}. A government fund in California, Connecticut or New York keeps its edge only if it passed the 50% quarter-end test, which many did not. The calculator compares any two funds in the data; it starts with Fidelity’s prime fund SPRXX against its government fund SPAXX.</p>
+  </div>
+  <section data-chrome class="prose prose-slate mt-8 max-w-none">
+    <h2>Average yield by fund type, before and after tax</h2>
+    <div class="overflow-x-auto"><table>
+      <thead><tr><th>Type</th><th class="text-right">Classes</th><th class="text-right">Gross</th><th class="text-right">Net, as filed</th><th class="text-right">After tax, CA</th><th class="text-right">After tax, TX</th></tr></thead>
+      <tbody>{stats.map((x) => <tr><td>{KIND_LABEL[x.k]}</td><td class="tabular-nums text-right">{x.n}</td><td class="tabular-nums text-right">{pct(x.g)}</td><td class="tabular-nums text-right">{pct(x.mean)}</td><td class="tabular-nums text-right">{pct(x.ca)}</td><td class="tabular-nums text-right">{pct(x.tx)}</td></tr>)}</tbody>
+    </table></div>
+    <p>Simple averages over share classes; single filer, $120,000 of taxable income; exempt share estimated from holdings.</p>
+  </section>
+</ToolPage>

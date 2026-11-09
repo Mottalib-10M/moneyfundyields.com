@@ -1,0 +1,20 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import { route } from '../../i18n/routes';
+import { AUTHOR_NAME, LAST_UPDATED } from '../../data/site-config';
+import { displayDate } from '../../lib/format';
+const lang = 'en';
+---
+<PageLayout title="Editorial policy of Money Fund Yields: filings first, no ranking for pay" description="How Money Fund Yields writes its pages: fund figures taken from Form N-MFP as filed, tax rules read in IRS and state documents, numbers computed rather than typed, and errors corrected." lang={lang} noindex={true} breadcrumbs={[{ label: 'Editorial policy' }]} showAuthor={false}>
+  <article class="prose prose-slate max-w-none">
+    <h1>Editorial policy</h1>
+    <h2>Where the figures come from</h2>
+    <p>Fund yields, holdings, maturities, assets and minimums come only from the Form N-MFP reports that funds file with the Securities and Exchange Commission, as filed. Tax brackets and rules come only from IRS revenue procedures and publications and from the instructions and publications of state tax agencies, each cited at the foot of the page that uses it. Treasury bill rates come from the Treasury. Fund company figures appear only where the site says so, for example the year-end tax letter percentages of three Vanguard funds used to measure the gap with the holdings estimate.</p>
+    <h2>How pages are written</h2>
+    <p>Every number in the text is computed from the data at build time, not typed by hand, so the pages change together when the data changes. Each fund page carries its own analysis, written for that fund. Statements about which fund keeps more after tax are computed for the stated situation and are not recommendations.</p>
+    <h2>Independence</h2>
+    <p>{AUTHOR_NAME} receives no payment from fund companies, brokers or advertisers for any ranking or mention. There is no affiliate link. The site is not an investment adviser and does not give investment or tax advice.</p>
+    <h2>Updates and corrections</h2>
+    <p>Data is refreshed by hand when a new month of reports is filed; the date of the last update is shown on every page. Errors reported through the <a href={route('contact', lang)}>contact page</a> are checked against the source document and corrected in the next build. Last review of this policy: {displayDate(LAST_UPDATED, 'en-US')}.</p>
+  </article>
+</PageLayout>

@@ -1,0 +1,34 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import StateTables from '../../components/StateTables.astro';
+import { FUNDS, fund, pct, day, META, YIELD_DAYS } from '../../lib/data';
+import { afterTax } from '../../lib/engine/tax';
+import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+const sno = fund('SNOXX');
+const sit = (st: string) => ({ amount: 50000, state: st, filing: 'single' as const, income: 120000 });
+const nj = afterTax(sno, sit('NJ')), ca = afterTax(sno, sit('CA'));
+const njMunis = FUNDS.filter((f) => f.k === 'state-muni' && f.st === 'NJ');
+const title = fitTitle(['New Jersey Money Market Fund Tax: Exempt Federal Share', 'New Jersey Money Market Fund Tax: The Exempt Federal Share']);
+const description = fitDesc([
+  `New Jersey money market fund tax: the federal-debt share of a dividend is exempt with no 50% test. See what each fund keeps after New Jersey and federal tax.`,
+  `New Jersey money market fund tax: the federal-debt share of a fund dividend is exempt with no 50% test. See what each fund keeps after New Jersey and federal tax.`,
+]);
+const faqs = [
+  { q: 'What is a qualified investment fund in New Jersey?', a: `A fund that holds at least 80% of its investments in obligations exempt from New Jersey tax, such as U.S. and New Jersey obligations, and meets the other conditions of the Division of Taxation. Its dividends from all exempt obligations are exempt. For federal obligations alone the threshold does not apply, according to GIT-5.` },
+  { q: 'Does New Jersey tax repo income in a Treasury fund?', a: `Yes. Interest on repurchase agreements is not interest on U.S. obligations, so the part of a dividend earned on repo is taxable. In a fund like SNOXX, which held more repo than Treasuries at the last month end, most of the dividend is taxable in New Jersey.` },
+  { q: 'How do I know the exempt share of my fund for New Jersey?', a: `The fund company’s year-end tax information gives the percentage of dividends from U.S. government obligations, and often a separate New Jersey line for qualified investment funds. Enter the U.S. percentage in the tax letter field of the calculator to replace the holdings estimate.` },
+];
+---
+<ToolPage id="new-jersey" title={title} description={description} crumb="New Jersey"
+  h1="New Jersey money market fund tax: the exempt federal share"
+  lede={`Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, New Jersey rates for tax year 2025. Not tax or investment advice.`}
+  faqs={faqs} related={related('us-government-obligations-percentage', 'fund-snoxx', 'swvxx-vs-snsxx')} sources={src('nj-git5', 'nj-1040', 'nmfp', 'irs-rp')}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SNOXX" b="SWVXX" methodHref={METHOD} defState="NJ" id="c-nj" />
+  <div class="prose prose-slate mt-10 max-w-none">
+    <h2>No 50% line for federal obligations</h2>
+    <p>New Jersey has a threshold too, but it works differently and matters less for money funds than California’s. Its Division of Taxation describes a qualified investment fund: one with at least 80% of its investments in obligations exempt from New Jersey tax. Dividends of such a fund are exempt to the extent they come from those obligations, New Jersey municipal bonds included. For interest on federal obligations, though, GIT-5 says the part of a fund’s distributions that comes from them is exempt whether or not the fund qualifies. A government money fund that held 40% of its assets in Treasuries therefore passes 40% of its dividend to a New Jersey resident free of state tax, where a Californian would get nothing. Schwab Treasury Obligations (SNOXX) shows the gap: for a single filer at $120,000 it left {pct(nj.afterTaxYield)} after New Jersey and federal tax, against {pct(ca.afterTaxYield)} after California and federal tax, and most of that difference comes from California’s 50% test, which the fund missed and which removes the exemption that New Jersey keeps; the rest is the lower New Jersey rate. The data also holds {njMunis.length} New Jersey municipal share class{njMunis.length === 1 ? '' : 'es'}, exempt from both taxes for residents.</p>
+  </div>
+  <StateTables st="NJ" />
+</ToolPage>

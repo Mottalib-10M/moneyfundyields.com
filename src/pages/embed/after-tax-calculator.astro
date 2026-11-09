@@ -1,0 +1,22 @@
+---
+/** Embeddable page (iframe): the calculator alone. noindex, outside the sitemap. */
+import '../../styles/global.css';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import { SITE_URL, SITE_NAMES } from '../../data/site-config';
+import { PAGE_FUNDS } from '../../lib/common';
+import { META, YIELD_DAYS, day } from '../../lib/data';
+---
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Money market fund after-tax yield calculator (widget)</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={`${SITE_URL}/en/`} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="bg-white p-2 text-navy-900">
+    <main><AfterTaxCalc client:load funds={PAGE_FUNDS} a="VMFXX" b="VUSXX" methodHref={`${SITE_URL}/en/method/`} id="embed" /></main>
+    <p class="mt-2 text-center text-xs text-navy-600"><a href={`${SITE_URL}/en/`} target="_blank" rel="noopener" class="underline">{SITE_NAMES.en}</a> · yields as filed for {YIELD_DAYS} · independent tool, not a government service, not investment advice</p>
+  </body>
+</html>

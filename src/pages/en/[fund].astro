@@ -1,0 +1,119 @@
+---
+/** One page per fund of FUND_TICKERS: calculator first, then what the filings show. Text: content/funds.ts. */
+import ToolPage from '../../components/ToolPage.astro';
+import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
+import YieldChart from '../../components/YieldChart.astro';
+import { FUND_TICKERS } from '../../lib/pages';
+import { fund, pct, bn, usd, day, drag, filingUrl, quarterLabel, COMP_LABEL, KIND_LABEL, HISTORY, META, rank, monthName } from '../../lib/data';
+import { fiftyTest } from '../../lib/engine/tax';
+import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { TEXT, ctx } from '../../content/funds';
+import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
+
+export function getStaticPaths() {
+  return FUND_TICKERS.map((t) => ({ params: { fund: t.toLowerCase() }, props: { t } }));
+}
+const { t } = Astro.props as { t: string };
+const f = fund(t); const c = ctx(t); const tx = TEXT[t];
+const y = pct(f.y);
+const short = new Date(`${f.yDate}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+const isMuni = f.k.endsWith('muni');
+const title = fitTitle([
+  `${t} Yield: ${y} 7-Day as Filed, After-Tax by State`,
+  `${t} Yield ${y}: 7-Day as Filed and After-Tax by State`,
+  `${t} Yield: ${y} as Filed, and After-Tax Yield by State`,
+]);
+const what = isMuni ? 'its tax-equivalent value' : 'the share exempt from state tax, the 50% quarter test';
+const description = fitDesc([
+  `${t} 7-day yield as filed: ${y} on ${short}. Holdings, ${what} and what the yield leaves after federal and state income tax.`,
+  `${t} 7-day yield as filed: ${y} on ${short}. See holdings, ${what} and what the yield leaves after federal and state income tax.`,
+  `${t} 7-day yield as filed: ${y} on ${short}. See its holdings, ${what} and what the yield leaves you after federal and state income tax.`,
+  `${t} 7-day yield as filed: ${y} on ${short}. Holdings, ${what} and the yield left after federal and state tax.`,
+  `${t} 7-day yield as filed: ${y} on ${short}. Holdings, ${what} and the yield you keep after tax.`,
+]);
+const h = HISTORY[t];
+const monthEnds = h.filter((p, i) => i === h.length - 1 || p[0].slice(0, 7) !== h[i + 1][0].slice(0, 7));
+const comp = Object.entries(f.comp).filter(([, v]) => v >= 0.0005).sort((a, b) => b[1] - a[1]);
+const quarters = Object.entries(f.q).sort();
+const test = fiftyTest(f.q);
+const sits = [['CA', 'California'], ['NY', 'New York'], ['TX', 'Texas']].map(([st, name]) => {
+  const r = rank({ amount: 50000, state: st, filing: 'single', income: 120000 });
+  const i = r.findIndex((x) => x.f.t === t);
+  return { st, name, pos: i + 1, n: r.length, at: r[i].r.afterTaxYield, net: r[i].r.net, gapTop: r[0].r.net - r[i].r.net };
+});
+/** Role of the fund in a brokerage account, when the site already states it (pages.ts, spaxx-vs-vmfxx). */
+const ROLE: Record<string, string> = { SPAXX: 'the fund Fidelity uses by default for the uninvested cash in a brokerage account', VMFXX: 'the fund Vanguard uses by default for the uninvested cash in a brokerage account' };
+const dr = drag(f);
+const sources = [{ name: `Form N-MFP report of ${f.reg} for ${day(f.rep)}, filed ${day(f.filed)} (as filed)`, url: filingUrl(f) }, ...src('nmfp', 'rule-2a7', 'irs-rp', 'ftb-ca', 'ny-it201i')];
+const faqs = tx.faqs(c);
+const rel = related(...[tx.vs, 'fifty-percent-rule', 'seven-day-yield', isMuni ? 'municipal-money-market-funds' : 'us-government-obligations-percentage'].filter(Boolean) as string[]);
+---
+<ToolPage id={`fund-${t.toLowerCase()}`} title={title} description={description} crumb={t}
+  h1={`${t} yield: ${y} as filed, and what it keeps after tax`}
+  lede={`${t} is ${ROLE[t] ? `${f.name}, ${ROLE[t]}` : `the ticker of ${f.name}`}. Here is what it paid and what you keep after tax. Yield reported by the fund for ${day(f.yDate)}, its last business day in the ${monthName(META.month.slice(0, 7))} report; holdings as of ${day(f.rep)}, the date of that report. The fund’s own site shows today’s figure. Not investment advice.`}
+  faqs={faqs} related={rel} sources={sources}>
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a={t} pick={false} methodHref={METHOD} defState={f.st ?? 'CA'} id={`c-${t.toLowerCase()}`} />
+
+  <section class="prose prose-slate mt-10 max-w-none">
+    <h2>What the filings say about {t}</h2>
+    <p>{tx.angle(c)}</p>
+  </section>
+
+  <section data-chrome class="prose prose-slate mt-8 max-w-none">
+    <h2>{t} 7-day yield as filed, {day(h[0][0])} to {day(h[h.length - 1][0])}</h2>
+    <YieldChart series={[{ label: `${t} 7-day net yield`, points: h, color: '#1F5C4A' }]} caption={`Daily values reported by the fund in its monthly Form N-MFP filings.`} />
+    <div class="overflow-x-auto"><table>
+      <thead><tr><th>Last day reported in the month</th><th class="text-right">7-day net yield</th></tr></thead>
+      <tbody>{monthEnds.map((p) => <tr><td>{day(p[0])}</td><td class="tabular-nums text-right">{pct(p[1])}</td></tr>)}</tbody>
+    </table></div>
+    <p>A fund reports these yields once a month, within five business days of month end. Between two reports the figure here ages: by the time the {monthName(META.month.slice(0, 7))} report is replaced, it is up to five weeks old. The fund’s own site shows today’s figure.</p>
+  </section>
+
+  <section data-chrome class="prose prose-slate mt-8 max-w-none">
+    <h2>What {t} held on {day(f.rep)}</h2>
+    <div class="overflow-x-auto"><table>
+      <thead><tr><th>Holding</th><th class="text-right">Share of portfolio</th><th>Exempt from state tax?</th></tr></thead>
+      <tbody>{comp.map(([k, v]) => <tr><td>{COMP_LABEL[k]}</td><td class="tabular-nums text-right">{pct(v, 1)}</td><td>{k === 'tsy' || k === 'agyExempt' ? 'Yes, by federal law' : k === 'muni' ? 'Federal: yes; state: usually only your own state' : 'No'}</td></tr>)}</tbody>
+    </table></div>
+    {!isMuni && <p>Share of the portfolio in U.S. government debt whose interest states cannot tax: <strong>{pct(f.usob, 1)}</strong>. This is the figure the calculator above uses as the state-tax-free part of the dividend. It is an estimate from the holdings on one day; the fund’s year-end tax statement gives the share of the year’s dividends, which is the figure for a tax return.</p>}
+  </section>
+
+  {!isMuni && <section data-chrome class="prose prose-slate mt-8 max-w-none">
+    <h2>{t} and the 50% quarter-end test</h2>
+    <div class="overflow-x-auto"><table>
+      <thead><tr><th>Quarter end</th><th class="text-right">U.S. government debt</th><th>California, Connecticut, New York</th></tr></thead>
+      <tbody>{quarters.map(([q, v]) => <tr><td>{quarterLabel(q)}</td><td class="tabular-nums text-right">{pct(v, 1)}</td><td>{v >= 0.5 ? 'Passes (at least 50%)' : 'Fails: whole dividend taxed'}</td></tr>)}</tbody>
+    </table></div>
+    <p>In California, Connecticut and New York, the part of a dividend earned on U.S. government debt is state-tax-free only if the fund kept at least half its money in that debt at every quarter end. These quarter-end figures only decide pass or fail; the {pct(f.usob, 0)} above is the part the calculator treats as tax-free. {test === 'passes' ? `${t} held at least half its assets in U.S. government debt at every quarter end in the data, so it passes.` : `${t} fell below half at one or more quarter ends in the data, so residents of the three states pay state tax on the whole dividend for the year.`} The law looks at the close of each quarter of the fund’s own tax year, which is not always the calendar quarter; calendar quarter-end reports are a close proxy, and the fund’s year-end letter says whether it qualified. <a href="/en/fifty-percent-rule/">How the rule works</a>.</p>
+  </section>}
+
+  <section data-chrome class="prose prose-slate mt-8 max-w-none">
+    <h2>{t} at a glance</h2>
+    <div class="overflow-x-auto"><table><tbody>
+      <tr><td>Fund type</td><td>{KIND_LABEL[f.k]}{f.st ? ` (${f.st})` : ''} money market fund; category on the filing: {f.cat}</td></tr>
+      <tr><td>Legal entity that files the fund’s report</td><td>{f.reg}</td></tr>
+      <tr><td>Assets in this share class</td><td class="tabular-nums">{bn(f.assets)}</td></tr>
+      <tr><td>Gross 7-day yield of the fund</td><td class="tabular-nums">{f.g != null ? pct(f.g) : 'not reported'}</td></tr>
+      <tr><td>Expenses taken from the yield (expense drag)</td><td class="tabular-nums">{dr != null ? pct(dr) : 'not available'}</td></tr>
+      <tr><td>Average days until holdings repay or reset their rate (weighted average maturity)</td><td class="tabular-nums">{f.wam} days (legal limit 60)</td></tr>
+      <tr><td>Average days until holdings are paid back in full (weighted average life)</td><td class="tabular-nums">{f.wal} days (legal limit 120)</td></tr>
+      <tr><td>Minimum initial investment on file</td><td class="tabular-nums">{f.min > 0 ? usd(f.min) : 'None reported'}</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section data-chrome class="prose prose-slate mt-8 max-w-none">
+    <h2>Where {t} ranks after tax</h2>
+    <p>Among the {sits[0].n} share classes in the data, for a single filer with $120,000 of taxable income and $50,000 in the fund:</p>
+    <div class="overflow-x-auto"><table>
+      <thead><tr><th>State</th><th class="text-right">Rank</th><th class="text-right">Yield after tax</th><th class="text-right">Kept a year</th></tr></thead>
+      <tbody>{sits.map((s) => <tr><td>{s.name}</td><td class="tabular-nums text-right">{s.pos} of {s.n}</td><td class="tabular-nums text-right">{pct(s.at)}</td><td class="tabular-nums text-right">{usd(s.net)}</td></tr>)}</tbody>
+    </table></div>
+    <p>{`The rank compares ${t} with every other fund for a resident of that state. In a state with no income tax, such as Texas, funds whose dividends are taxed by states catch up, so the rank can be lower even though you keep more. In California, the fund ranked first kept ${usd(sits[0].gapTop)} a year more than ${t} on $50,000.`}</p>
+    <p>A rank of past yields, not a recommendation, and this site does not say which fund to hold. Moving cash to another fund can involve a minimum or a fee set by your brokerage. <a href="/en/">Rank every fund for your situation</a>.</p>
+  </section>
+
+  <section class="prose prose-slate mt-8 max-w-none">
+    <h2>What to watch in {t}</h2>
+    <p>{tx.watch(c)}</p>
+  </section>
+</ToolPage>

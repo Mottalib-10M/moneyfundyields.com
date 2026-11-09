@@ -161,8 +161,9 @@ const crumbAside = Astro.slots.has('crumb-aside') ? (await Astro.slots.render('c
     </main>
     <footer class="mt-16 border-t border-navy-200 bg-navy-50">
       <div class="mx-auto max-w-6xl px-4 py-12">
-        <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
-          {footerCols.map((col) => (<div><h2 class="mb-3 text-sm font-semibold text-navy-900">{col.label}</h2><ul class="space-y-2 text-sm text-navy-600">{col.links.map((l) => <li><a href={l.href} class="hover:text-navy-900">{l.label}</a></li>)}</ul></div>))}
+        <div class="grid grid-cols-2 gap-x-8 gap-y-3 md:grid-cols-4 md:gap-y-8">
+          {/* Colonnes repliées sur téléphone (test naïf tour 4 : « plus de 40 liens, on croit qu'il reste du contenu ») ; ouvertes dès 768 px par le script plus bas. */}
+          {footerCols.map((col) => (<details data-pied class="col-span-2 md:col-span-1"><summary class="mb-3 cursor-pointer text-sm font-semibold text-navy-900"><h2 class="inline">{col.label}</h2> <span class="text-xs font-normal text-navy-500">({col.links.length})</span></summary><ul class="space-y-2 text-sm text-navy-600">{col.links.map((l) => <li><a href={l.href} class="hover:text-navy-900">{l.label}</a></li>)}</ul></details>))}
         </div>
         {popular.length > 0 && (<div class="mt-8 border-t border-navy-200 pt-6"><h2 class="mb-2 text-sm font-semibold text-navy-900">{ui.footerPopular}</h2><p class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-navy-600">{popular.map((p) => <a href={p.href} class="hover:text-navy-900">{p.label}</a>)}</p></div>)}
         <div class="mt-8 border-t border-navy-200 pt-8">
@@ -177,6 +178,7 @@ const crumbAside = Astro.slots.has('crumb-aside') ? (await Astro.slots.render('c
       </div>
     </footer>
     <script>
+      if (window.matchMedia('(min-width: 768px)').matches) document.querySelectorAll('details[data-pied]').forEach((d) => d.setAttribute('open', ''));
       const toggle = document.getElementById('mobile-menu-toggle'); const menu = document.getElementById('mobile-menu');
       toggle?.addEventListener('click', () => { const hidden = menu?.classList.toggle('hidden'); toggle.setAttribute('aria-expanded', hidden ? 'false' : 'true'); });
       document.querySelectorAll('.mobile-section-toggle').forEach((btn) => { btn.addEventListener('click', () => { const c = btn.nextElementSibling; const open = c?.classList.toggle('hidden') === false; btn.setAttribute('aria-expanded', open ? 'true' : 'false'); btn.querySelector('.mobile-chevron')?.classList.toggle('rotate-180'); }); });

@@ -10,9 +10,11 @@ export const GROUPS: Array<{ id: Group; label: string }> = [
 ];
 export const label = (id: string) => CORE[id] ?? pageById(id)?.nav ?? id;
 const link = (id: string, lang: Locale): NavLink => ({ href: route(id, lang), label: label(id) });
-const inGroup = (g: Group, lang: Locale): NavLink[] => PAGES.filter((p) => p.group === g).map((p) => link(p.id, lang));
+const inGroup = (g: Group, lang: Locale): NavLink[] => PAGES.filter((p) => p.group === g).map((p) => ({ href: route(p.id, lang), label: p.menu ?? p.nav }));
+/** First entry of the menu, for a reader who does not know where to start (test naïf tour 4). */
+const START: Array<[string, string]> = [['home', 'Rank all funds after tax (find yours)'], ['money-market-vs-high-yield-savings', 'Bank savings vs a money fund'], ['money-market-fund-rules', 'Is a money fund safe? The rules'], ['seven-day-yield', 'What the 7-day yield means']];
 export function navCategories(lang: Locale): NavCategory[] {
-  return GROUPS.map((g) => ({ label: g.label, links: inGroup(g.id, lang) }));
+  return [{ label: 'Start here', links: START.map(([id, l]) => ({ href: route(id, lang), label: l })) }, ...GROUPS.map((g) => ({ label: g.label, links: inGroup(g.id, lang) }))];
 }
 export const navDirect = (_lang: Locale): NavLink[] => [];
 export const footerColumns = (lang: Locale): NavCategory[] => [

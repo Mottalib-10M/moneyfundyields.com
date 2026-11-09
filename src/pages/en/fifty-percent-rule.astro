@@ -1,6 +1,7 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
 import MiniSim from '../../components/calc/MiniSim';
+import FiftyPicker from '../../components/calc/FiftyPicker';
 import { FUNDS, fund, pct, bn, day, quarterLabel, META } from '../../lib/data';
 import { fiftyTest, afterTax } from '../../lib/engine/tax';
 import { src, related, fundHref } from '../../lib/common';
@@ -15,6 +16,7 @@ const sno = fund('SNOXX'), sns = fund('SNSXX');
 const sit = { amount: 50000, state: 'CA', filing: 'single' as const, income: 120000 };
 const cSno = afterTax(sno, sit), cSns = afterTax(sns, sit);
 const [q1, q2] = META.quarters;
+const pickable = [...govs].sort((a, b) => b.assets - a.assets).map((f) => ({ t: f.t, name: f.name, q: f.q, href: fundHref(f.t) }));
 const title = fitTitle(['50% Rule for Money Market Funds in CA, CT and NY: Who Fails', '50% Rule for Money Market Funds in CA, CT and NY: Who Passes']);
 const description = fitDesc([
   `The 50% rule for money market funds in California, Connecticut and New York: how the quarter-end test works and which funds failed it in their own filings.`,
@@ -33,7 +35,10 @@ const faqs = [
   faqs={faqs} related={related('california', 'new-york', 'connecticut')} sources={src('ftb-ca', 'ny-it201i', 'ct-ps', 'nmfp', 'fhlb-statute')}>
   <p>Federal law forbids states to tax interest on obligations of the United States, and a mutual fund that earns such interest can pass the exemption to its shareholders. Most states let it through in proportion: if 60% of a fund’s income came from Treasuries, 60% of its dividend is exempt. California, Connecticut and New York add a condition. The fund must have held at least 50% of its total assets in qualifying obligations at the close of each quarter of its taxable year. A fund that meets the test passes through its exempt share as usual. A fund that misses it at even one quarter end passes through nothing, and the whole dividend for the year is taxed by those three states. The rule turns a gradual question into a cliff. In the {govs.length} retail government and Treasury share classes behind this site, {fails.length} held less than 50% in qualifying obligations at the {quarterLabel(q1)} or {quarterLabel(q2)} quarter end, {bn(failAssets)} of assets in all, and {close.length} were within five points of the line on one of the two dates.</p>
 
+  <div data-simulateur-secondaire><FiftyPicker client:load funds={pickable} quarters={[[q1, quarterLabel(q1)], [q2, quarterLabel(q2)]]} def="SPAXX" /></div>
+  <details class="not-prose my-4 rounded-lg border border-navy-200 px-3 py-2"><summary class="cursor-pointer text-sm font-medium text-navy-700">Have the figures from a fund report? Type them yourself</summary>
   <div data-simulateur-secondaire><MiniSim client:load kind="fifty" href="/en/" /></div>
+  </details>
 
   <h2>What counts, and what does not</h2>
   <p>The test counts obligations whose interest the state may not tax. Treasury bills, notes and bonds count. So does debt of a short list of agencies that Congress exempted from state tax: the Federal Home Loan Banks, whose statute shields their notes from state income tax, the Farm Credit Banks and the Tennessee Valley Authority. Fannie Mae and Freddie Mac securities do not count, though they are government-sponsored, because their charters do not carry the exemption. Repurchase agreements do not count either, and this is where most government funds lose ground. In a repo, the fund lends cash overnight to a bank or dealer and takes Treasuries or agency securities as collateral. The interest comes from the borrower, so it is not interest on a U.S. obligation, and the asset on the fund’s books is the loan, not the collateral. A government fund can therefore hold nothing but government paper in the sense of rule 2a-7 and still fall far below 50% for state tax purposes.</p>

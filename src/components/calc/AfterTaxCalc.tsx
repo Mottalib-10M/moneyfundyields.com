@@ -10,12 +10,17 @@ import { afterTax, hasSchedule, isNoTax, stateName, stateOptions, stateRule, typ
 import { formatMoney } from '../../lib/format';
 import { readParams, num, str, updateURL } from '../../lib/url-state';
 import { libellesTrame } from '../../lib/libelles-trame';
+import MentionExemple from './MentionExemple';
 
 export interface FundLite extends FundTax { t: string; name: string; yDate: string }
 interface Alt { kind: 'savings' | 'etf' | 'bill'; label: string; defYield: number; help: string }
 interface Props {
   funds: FundLite[]; a: string; b?: string; alt?: Alt; pick?: boolean;
   defState?: string; defFiling?: Filing; defIncome?: number; defAmount?: number; methodHref: string; id?: string;
+  /** Every share class of the data: when given, a one-fund calculator says where the fund ranks for the reader (test naïf tour 4). */
+  rankAll?: FundLite[];
+  /** Second calculator of a page: it does not read or write the shared link, which belongs to the first one. */
+  noUrl?: boolean;
 }
 
 const pct = (x: number, d = 2) => `${(x * 100).toFixed(d)}%`;
@@ -28,7 +33,7 @@ export const simpleOfApy = (apy: number) => 365 * ((1 + apy) ** (1 / 365) - 1);
 const gapShown = (x: number, y: number) => Math.round(x) - Math.round(y);
 const longDate = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
-export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState = 'CA', defFiling = 'single', defIncome = 120000, defAmount = 50000, methodHref, id = 'calc' }: Props) {
+export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState = 'CA', defFiling = 'single', defIncome = 120000, defAmount = 50000, methodHref, id = 'calc', rankAll, noUrl = false }: Props) {
   const [fa, setFa] = useState(a);
   const [fb, setFb] = useState(b ?? '');
   const [amount, setAmount] = useState(defAmount);
@@ -46,6 +51,7 @@ export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState =
   const mine = <T,>(f: (v: T) => void) => (v: T) => { setTouched(true); f(v); };
 
   useEffect(() => {
+    if (noUrl) return;
     const u = readParams(window.location.search);
     if (u.toString() === '') return;
     setFa(str(u, 'fund', a)); if (b) setFb(str(u, 'vs', b));
@@ -54,6 +60,7 @@ export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState =
     if (alt) { setAltYield(num(u, 'ay', +(alt.defYield * 100).toFixed(2))); setAltShare(num(u, 'as', 100)); }
   }, []);
   useEffect(() => {
+    if (noUrl) return;
     updateURL({ fund: fa, vs: b ? fb : undefined, amt: amount, st: state, fs: filing, inc: income, sr: hasSchedule(state) || isNoTax(state) ? undefined : other,
       nyc: state === 'NY' ? nyc : undefined, tl: letter || undefined, ay: alt ? altYield : undefined, as: alt?.kind === 'etf' ? altShare : undefined });
   }, [fa, fb, amount, state, filing, income, other, nyc, letter, altYield, altShare]);
@@ -72,8 +79,16 @@ export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState =
     : { y: altYield / 100, k: 'treasury-only', usob: altShare / 100, q: { x: altShare / 100 } }) : undefined;
   const rAlt = useMemo(() => (altFund ? afterTax(altFund, { ...sit, exemptOverride: null }) : undefined), [altYield, altShare, amount, state, filing, income, other, nyc, alt?.kind]);
   const second = rb ?? rAlt;
+  // Where the fund ranks for the reader, and what the top fund keeps more (test naïf tour 4: the decisive figure was six screens down).
+  const ranking = useMemo(() => {
+    if (!rankAll || second) return undefined;
+    const sitNoLetter = { ...sit, exemptOverride: null };
+    const all = rankAll.map((f) => ({ f, r: f.t === fundA.t ? ra : afterTax(f, sitNoLetter) })).sort((p, q) => q.r.afterTaxYield - p.r.afterTaxYield);
+    const pos = all.findIndex((x) => x.f.t === fundA.t);
+    return { pos: pos + 1, n: all.length, top: all[0] };
+  }, [rankAll, ra, fundA, amount, state, filing, income, other, nyc]);
   const secondName = fundB?.t ?? alt?.label ?? '';
-  const secondInText = fundB?.t ?? (alt ? `a ${alt.label.charAt(0).toLowerCase()}${alt.label.slice(1)}` : '');
+  const secondInText = fundB?.t ?? (alt ? `a ${alt.kind === 'savings' ? alt.label.toLowerCase() : alt.label}` : '');
   const dates = [...new Set([fundA.yDate, ...(fundB ? [fundB.yDate] : [])])];
   // Libellé du choix : la liste de la trame l'affiche maintenant en entier (report du 2026-11-08) ; au-delà de
   // deux lignes sur un téléphone de 320 px le champ grandissait (check-layout). Le ticker vient d'abord et
@@ -109,12 +124,18 @@ export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState =
         </details>
       </form>
       <div data-resultat aria-live="polite" className="rounded-xl bg-accent-50 p-4 sm:p-5">
-        {example && <p data-exemple className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-800">Example result</p>}
+        <MentionExemple lang="en" touched={example ? {} : { any: true }} />
         <ResultHead r={ra} name={fundA.t} />
         <Lines r={ra} rule={rule} name={fundA.t} />
+        {ranking && <div data-rang className="mt-4 rounded-lg border border-accent-200 bg-white p-3 text-sm text-navy-800">
+          <p>Rank <strong className="tabular-nums">{ranking.pos} of {ranking.n}</strong> after tax {example ? 'in this example' : 'for you'}.</p>
+          <p className="tabular-nums mt-1">{ranking.pos === 1 ? `No fund in the data keeps more.` : <>The top fund, {ranking.top.f.name} ({ranking.top.f.t}), keeps <strong>{formatMoney(gapShown(ranking.top.r.net, ra.net))} more a year</strong> on {formatMoney(amount)}.</>}</p>
+          <p className="mt-1 text-xs text-navy-600">{fundA.t} may be just your brokerage’s default. Your brokerage decides which other funds you can buy there, with what minimum and fee: check its list before moving cash. Not a bank account: not FDIC-insured.</p>
+        </div>}
         {second && <div className="mt-4 border-t border-accent-200 pt-3">
+          {vsApy && <p className="mb-2 text-xs text-navy-700">At {pct(altYield / 100)} APY your bank pays about <strong>{formatMoney(amount * altYield / 100)}</strong> a year on {formatMoney(amount)}, counting interest on interest. A fund’s 7-day yield does not count it, so to compare fairly the bank rate is counted here the same way: {pct(simpleOfApy(altYield / 100))}, {formatMoney(second.gross)} a year.</p>}
           <ResultHead r={second} name={secondName} small paid={vsApy ? 'interest' : 'dividends'} />
-          {vsApy && <p className="mt-1 text-xs text-navy-600">Your {pct(altYield / 100)} APY counts here as {pct(simpleOfApy(altYield / 100))} a year: an APY includes interest earned on interest, a fund’s 7-day yield does not. So {fundA.t} shows the same figure as in every ranking on this site.</p>}
+          <Lines r={second} rule={rule} name={secondName} paid={vsApy ? 'Interest' : 'Dividends'} small />
           <p className="mt-2 text-sm text-navy-800">{gapShown(ra.net, second.net) >= 0
             ? <>{fundA.t} leaves <strong>{formatMoney(gapShown(ra.net, second.net))}</strong> more a year than {secondInText}.</>
             : <>{secondName} leaves <strong>{formatMoney(gapShown(second.net, ra.net))}</strong> more a year than {fundA.t}.</>}</p>
@@ -133,25 +154,26 @@ function ResultHead({ r, name, small = false, paid = 'dividends' }: { r: Result;
   </div>);
 }
 
-function Lines({ r, rule, name }: { r: Result; rule: string; name: string }) {
+function Lines({ r, rule, name, paid = 'Dividends', small = false }: { r: Result; rule: string; name: string; paid?: string; small?: boolean }) {
   // In dollars, not as a share: "71% state-tax-free" sat next to "Kept 73%" and the two were read as one (test naif tour 2).
   const free = `${formatMoney(r.gross * r.exemptShare)} of the ${formatMoney(r.gross)} is free of ${r.stateLabel} tax`;
-  const note = rule === 'none' ? 'no state income tax'
+  const note = rule === 'none' ? 'no state income tax' : paid === 'Interest' ? 'bank interest: all of it taxed by the state'
     : rule === 'fifty' ? (r.fifty === 'fails' ? 'fund missed the 50% rule: all of it taxed' : free)
     : rule === 'unverified' ? `${formatMoney(r.gross * r.exemptShare)} of the ${formatMoney(r.gross)} assumed free of state tax` : free;
   return (<>
     <table className="mt-3 w-full text-sm"><tbody className="divide-y divide-accent-200">
-      <tr><td className="py-1.5 pr-2 text-navy-700">Dividends before tax</td><td className="tabular-nums py-1.5 text-right text-navy-900">{formatMoney(r.gross)}</td></tr>
-      <tr><td className="py-1.5 pr-2 text-navy-700">Federal tax at {pct(r.fedRate + r.niit, 1)}</td><td className="tabular-nums py-1.5 text-right text-navy-900">−{formatMoney(r.fedTax)}</td></tr>
+      <tr><td className="py-1.5 pr-2 text-navy-700">{paid} before tax</td><td className="tabular-nums py-1.5 text-right text-navy-900">{formatMoney(r.gross)}</td></tr>
+      <tr><td className="py-1.5 pr-2 text-navy-700">{r.fedTax === 0 && r.gross > 0 ? <>Federal tax <span className="block text-xs text-navy-600">none: a municipal fund’s dividends are free of federal tax</span></> : `Federal tax at ${pct(r.fedRate + r.niit, 1)}`}</td><td className="tabular-nums py-1.5 text-right text-navy-900">−{formatMoney(r.fedTax)}</td></tr>
       <tr><td className="py-1.5 pr-2 text-navy-700">State tax at {pct(r.stateRate, 2)} <span className="block text-xs text-navy-600">{note}</span></td><td className="tabular-nums py-1.5 text-right text-navy-900">−{formatMoney(r.stateTax)}</td></tr>
     </tbody></table>
-    <div className="mt-3"><StackedBar ariaPrefix={`${name} dividends`} total={r.gross} segments={[{ label: 'Kept', value: Math.max(0, r.net), color: '#1F5C4A' }, { label: 'Federal', value: r.fedTax, color: '#94a3b8' }, { label: 'State', value: r.stateTax, color: '#cbd5e1' }]} /></div>
+    {!small && <div className="mt-3"><StackedBar ariaPrefix={`${name} dividends`} total={r.gross} segments={[{ label: 'Kept', value: Math.max(0, r.net), color: '#1F5C4A' }, { label: 'Federal', value: r.fedTax, color: '#94a3b8' }, { label: 'State', value: r.stateTax, color: '#cbd5e1' }]} /></div>}
   </>);
 }
 
 /** « VCTXX · Vanguard California Municipal » : ticker, puis le nom sans le suffixe commun, 38 caractères au plus. */
 export function optionLabel(t: string, name: string): string {
-  const court = name.replace(/\s+money\s+market\s+(fund|portfolio|account)s?\s*$/i, '').trim() || name;
+  // Share class added to tell two rows apart (« · Investor Shares ») is left out: the ticker already does it.
+  const court = name.split(' · ')[0].replace(/\s+money\s+(market\s+)?(fund|portfolio|account)s?\s*$/i, '').trim() || name;
   const s = `${t} · ${court}`;
   if (s.length <= 38) return s;
   const cut = s.slice(0, 37);

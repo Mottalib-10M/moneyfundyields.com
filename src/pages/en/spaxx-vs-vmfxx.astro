@@ -19,7 +19,7 @@ const description = fitDesc([
 const faqs = [
   { q: 'Is VMFXX better than SPAXX?', a: `On the filed figures VMFXX yielded ${pct(b.y)} and SPAXX ${pct(a.y)}, mostly because SPAXX keeps more for expenses: about ${pct(drag(a) ?? 0)} of its gross yield against ${pct(drag(b) ?? 0)}. Better for you depends on where your account is and what moving it costs, which this site does not judge.` },
   { q: 'Which has more state-exempt income, SPAXX or VMFXX?', a: `At the last month end VMFXX held about ${pct(b.usob, 0)} in Treasuries and exempt agency debt and SPAXX about ${pct(a.usob, 0)}. Both passed the 50% quarter-end test in June and September. The year-end letters of each company give the share of dividends to use on a return.` },
-  { q: 'Can I hold VMFXX at Fidelity?', a: `Some brokerages let customers buy other companies’ money market funds, sometimes with a transaction fee or a different share class, and some do not. The Form N-MFP filing says nothing about where a fund can be bought; check the brokerage’s fund list and fee schedule.` },
+  { q: 'Can I hold VMFXX at Fidelity?', a: `Some brokerages let customers buy other companies’ money market funds, sometimes with a transaction fee or a different share class, and some do not. The Form N-MFP filing says nothing about where a fund can be bought; check the brokerage’s fund list and fee schedule.`, open: true },
 ];
 ---
 <ToolPage id="spaxx-vs-vmfxx" title={title} description={description} crumb="SPAXX vs VMFXX"

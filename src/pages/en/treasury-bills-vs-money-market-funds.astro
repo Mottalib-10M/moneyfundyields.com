@@ -8,7 +8,7 @@ const vus = fund('VUSXX');
 const tonly = FUNDS.filter((f) => f.k === 'treasury-only').sort((a, b) => b.y - a.y);
 const best = tonly[0];
 const bills: Array<[string, number]> = [['4-week bill', TBILLS.w4], ['13-week bill', TBILLS.w13], ['26-week bill', TBILLS.w26], ['52-week bill', TBILLS.w52]];
-const title = fitTitle(['Treasury Bills vs Money Market Funds: Yield After Tax', 'Treasury Bills vs Money Market Funds: Yields After Tax']);
+const title = fitTitle(['T-Bills and SGOV vs Money Market Funds: Yield After Tax', 'T-Bills and T-Bill ETFs vs Money Market Funds, After Tax', 'Treasury Bills vs Money Market Funds: Yield After Tax']);
 const description = fitDesc([
   `Treasury bills vs money market funds: the 4-week bill at ${pct(TBILLS.w4)} on ${day(TBILLS.date)} against Treasury funds as filed, after federal and state tax for you.`,
   `Treasury bills vs money market funds: the 4-week bill at ${pct(TBILLS.w4)} on ${day(TBILLS.date)} against Treasury funds as filed, after your federal and state tax.`,
@@ -16,11 +16,12 @@ const description = fitDesc([
 const faqs = [
   { q: 'Are Treasury bills taxed by states?', a: `No. Interest on Treasury bills is exempt from state and local income tax in every state, by federal law, and there is no 50% test for a bill you own directly. It is taxed federally as ordinary income in the year the bill matures or is sold, not month by month as fund dividends are.` },
   { q: 'Why does a bill yield more than a Treasury money fund?', a: `A fund deducts its expenses, ${pct(drag(vus) ?? 0)} at VUSXX on the filed figures, and holds bills of mixed maturities, some bought when rates were different. A bill bought today locks in today’s rate until it matures. When rates fall the fund lags downward; when they rise it lags upward.` },
+  { q: 'SGOV or a money market fund like SPAXX: which keeps more after tax?', a: `It depends on the two yields on the day you compare and on your state. Both pay dividends taxed federally; the share earned on Treasuries is free of state tax, which favors a Treasury-only ETF over a government fund that holds repo. SGOV is not a money market fund: its price moves a little and you trade it at market prices. Type its yield in the second calculator on this page to compare.` },
   { q: 'What does coupon-equivalent mean on a bill rate?', a: `Bills are sold at a discount and repaid at face value. The Treasury publishes both the discount rate and a coupon-equivalent rate, which restates the return on the price paid over a 365-day year, comparable with a money fund’s 7-day yield. This page uses the coupon-equivalent figure.` },
 ];
 ---
-<ToolPage id="treasury-bills-vs-money-market-funds" title={title} description={description} crumb="T-bills vs money funds"
-  h1="Treasury bills vs money market funds, after tax"
+<ToolPage id="treasury-bills-vs-money-market-funds" title={title} description={description} crumb="T-bills, SGOV vs money funds"
+  h1="Treasury bills and T-bill ETFs (SGOV, BIL) vs money market funds, after tax"
   lede={`Daily bill rates from the Treasury for ${day(TBILLS.date)} against Treasury money funds as filed. Not investment advice.`}
   faqs={faqs} related={related('fund-vusxx', 'fund-fdlxx', 'seven-day-yield')} sources={[{ name: 'U.S. Department of the Treasury, daily Treasury bill rates', url: TBILLS.source }, ...src('nmfp', 'irs-rp', 'rule-2a7')]}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VUSXX" alt={{ kind: 'bill', label: 'Treasury bill', defYield: TBILLS.w4, help: `4-week rate on ${day(TBILLS.date)}: ${pct(TBILLS.w4)}` }} methodHref={METHOD} id="c-tb" />
@@ -29,6 +30,11 @@ const faqs = [
     <p>A Treasury bill and a Treasury-only money fund pay income from the same source, so the tax side of the comparison is short: federal income tax on both, no state tax on either, as long as the fund holds Treasuries directly rather than through repo. The difference is in the mechanics and in cost. A bill bought at auction or from a broker pays the rate fixed on the day of purchase until it matures, four weeks to a year later, and then has to be rolled into a new one. A fund does that rolling every day across its whole portfolio, keeps a share price of $1.00, lets you sell on any business day, and charges for it. On {day(TBILLS.date)} the 4-week bill paid {pct(TBILLS.w4)} on a coupon-equivalent basis. For {day(vus.yDate)}, about a week earlier, the highest-yielding retail Treasury-only fund in the data, {best.t}, filed {pct(best.y)} and VUSXX {pct(vus.y)}. On {usd(50000)} the difference between the bill and VUSXX is about {usd((TBILLS.w4 - vus.y) * 50000)} a year before tax, if the rates held for a year, which they will not exactly.</p>
     <p>One more difference: a fund’s yield trails market rates. Its bills were bought over the past weeks, so when the Federal Reserve cuts, the fund keeps paying the older, higher rates for a while; when it raises, the fund catches up with a delay. A bill fixes one rate for its term.</p>
   </div>
+  <section class="prose prose-slate mt-8 max-w-none">
+    <h2>SGOV, BIL and other T-bill ETFs against a money market fund</h2>
+    <p>A Treasury bill ETF such as SGOV or BIL holds bills and trades on an exchange like a stock. It is a registered fund, so its dividends are taxed the way a money fund’s are: federal income tax on all of it, and in most states no tax on the part earned on Treasuries; California, Connecticut and New York apply their 50% quarter-end test to it too. The differences lie elsewhere. SGOV and BIL are not money market funds under rule 2a-7: their price is not held at $1.00, so it moves a little from day to day and around each dividend, and you buy and sell at market prices, with a small gap between the buying and the selling price. They usually quote a 30-day SEC yield rather than a 7-day yield; the two are close measures, not the same one. This site has no ETF data, so the calculator below asks for the yield you see on the ETF’s page and the share of its income from Treasuries, then compares it after tax with SPAXX or any money fund you pick.</p>
+  </section>
+  <AfterTaxCalc client:visible funds={PAGE_FUNDS} a="SPAXX" alt={{ kind: 'etf', label: 'T-bill ETF', defYield: TBILLS.w4, help: `From the ETF’s own page. Example: the 4-week bill rate, ${pct(TBILLS.w4)}` }} methodHref={METHOD} id="c-etf" noUrl />
   <section data-chrome class="prose prose-slate mt-8 max-w-none">
     <h2>Bill rates and Treasury-only funds</h2>
     <div class="overflow-x-auto"><table>

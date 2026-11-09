@@ -13,7 +13,7 @@ export const SITE_FOUNDED = '2026';
 export const LAST_UPDATED = '2026-11-07';
 export const AUTHOR_NAME = 'Radif Partners';
 export const AUTHOR_ROLE: Record<string, string> = {"en": "Independent publisher of money market fund yield and after-tax calculators built on Form N-MFP filings"};
-export const AUTHOR_DESC: Record<string, string> = {"en": "Radif Partners publishes Money Fund Yields. Every month we read the Form N-MFP reports that money market funds file with the Securities and Exchange Commission, take each share class's 7-day net yield and each fund's holdings as filed, and work out what the yield is worth after federal and state income tax, including the 50% quarter-end test of California, Connecticut and New York. We are not an investment adviser, we do not sell funds and we ask for no e-mail."};
+export const AUTHOR_DESC: Record<string, string> = {"en": "Radif Partners publishes Money Fund Yields. We read the Form N-MFP reports that money market funds file with the Securities and Exchange Commission, take each share class's 7-day net yield and each fund's holdings as filed, and work out what the yield is worth after federal and state income tax, including the 50% quarter-end test of California, Connecticut and New York. For now each update is run by hand when a new month of reports has been filed; there is no automatic update. We are not an investment adviser, we do not sell funds and we ask for no e-mail."};
 /** Sujets sur lesquels l'editeur est competent (schema.org knowsAbout). Ce sont les
  *  themes reellement traites par le site, pas une liste de mots-cles : un sujet
  *  declare ici sans page qui le couvre est une declaration fausse. */

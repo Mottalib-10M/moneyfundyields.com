@@ -16,7 +16,7 @@ const qShort = (ym: string) => ({ '03': 'Mar 31', '06': 'Jun 30', '09': 'Sep 30'
 <section data-chrome class="prose prose-slate mt-8 max-w-none">
   <h2>Top {top} share classes after tax in {name}{nyc ? ' (New York City resident)' : ''}</h2>
   <div class="overflow-x-auto"><table>
-    <thead><tr><th class="text-right">#</th><th>Fund</th><th class="text-right">You keep (after tax)</th><th class="text-right">Before tax</th><th>Type</th></tr></thead>
+    <thead><tr><th class="text-right">Rank</th><th>Fund</th><th class="text-right">You keep (after tax)</th><th class="text-right">Before tax</th><th>Type</th></tr></thead>
     <tbody>{r.map((x, i) => <tr><td class="tabular-nums text-right">{i + 1}</td><td>{link(x.f.t) ? <a href={link(x.f.t)}>{x.f.name}</a> : <strong>{x.f.name}</strong>}<span class="block text-xs">{x.f.t}</span></td><td class="tabular-nums text-right font-semibold">{pct(x.r.afterTaxYield)}</td><td class="tabular-nums text-right">{pct(x.f.y)}</td><td>{KIND_LABEL[x.f.k]}{x.f.st ? ` (${x.f.st})` : ''}</td></tr>)}</tbody>
   </table></div>
   <p>{`Ranked by what you keep after federal and state tax, not by the yield before tax. Single filer, $${income.toLocaleString('en-US')} of taxable income, yields the funds reported for ${YIELD_DAYS}. Each fund is shown by name, then its ticker, the short code your brokerage account shows. A ranking of past yields, not a recommendation.`}</p>

@@ -6,7 +6,7 @@ import YieldChart from '../../components/YieldChart.astro';
 import { FUND_TICKERS } from '../../lib/pages';
 import { fund, pct, bn, usd, day, drag, filingUrl, quarterLabel, COMP_LABEL, KIND_LABEL, HISTORY, META, rank, monthName } from '../../lib/data';
 import { fiftyTest } from '../../lib/engine/tax';
-import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { src, related, METHOD, PAGE_FUNDS, LITES } from '../../lib/common';
 import { TEXT, ctx } from '../../content/funds';
 import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
 
@@ -19,6 +19,8 @@ const y = pct(f.y);
 const short = new Date(`${f.yDate}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const isMuni = f.k.endsWith('muni');
 const title = fitTitle([
+  `${t} Yield and Rate: ${y} as Filed, After-Tax by State`,
+  `${t} Yield and Rate: ${y} as Filed, After Tax by State`,
   `${t} Yield: ${y} 7-Day as Filed, After-Tax by State`,
   `${t} Yield ${y}: 7-Day as Filed and After-Tax by State`,
   `${t} Yield: ${y} as Filed, and After-Tax Yield by State`,
@@ -52,7 +54,7 @@ const rel = related(...[tx.vs, 'fifty-percent-rule', 'seven-day-yield', isMuni ?
   h1={`${t} yield: ${y} as filed, and what it keeps after tax`}
   lede={`${t} is ${ROLE[t] ? `${f.name}, ${ROLE[t]}` : `the ticker of ${f.name}`}. Here is what it paid and what you keep after tax. Yield reported by the fund for ${day(f.yDate)}, its last business day in the ${monthName(META.month.slice(0, 7))} report; holdings as of ${day(f.rep)}, the date of that report. The fund’s own site shows today’s figure. Not investment advice.`}
   faqs={faqs} related={rel} sources={sources}>
-  <AfterTaxCalc client:load funds={PAGE_FUNDS} a={t} pick={false} methodHref={METHOD} defState={f.st ?? 'CA'} id={`c-${t.toLowerCase()}`} />
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a={t} pick={false} methodHref={METHOD} defState={f.st ?? 'CA'} id={`c-${t.toLowerCase()}`} rankAll={LITES} />
 
   <section class="prose prose-slate mt-10 max-w-none">
     <h2>What the filings say about {t}</h2>
@@ -69,7 +71,9 @@ const rel = related(...[tx.vs, 'fifty-percent-rule', 'seven-day-yield', isMuni ?
     <p>A fund reports these yields once a month, within five business days of month end. Between two reports the figure here ages: by the time the {monthName(META.month.slice(0, 7))} report is replaced, it is up to five weeks old. The fund’s own site shows today’s figure.</p>
   </section>
 
-  <section data-chrome class="prose prose-slate mt-8 max-w-none">
+  <details class="mt-8 rounded-xl border border-navy-200 p-4 sm:p-5">
+  <summary class="cursor-pointer text-lg font-bold text-navy-900">{t} in detail: what it held, the 50% test, costs and maturity</summary>
+  <section data-chrome class="prose prose-slate mt-4 max-w-none">
     <h2>What {t} held on {day(f.rep)}</h2>
     <div class="overflow-x-auto"><table>
       <thead><tr><th>Holding</th><th class="text-right">Share of portfolio</th><th>Exempt from state tax?</th></tr></thead>
@@ -100,6 +104,7 @@ const rel = related(...[tx.vs, 'fifty-percent-rule', 'seven-day-yield', isMuni ?
       <tr><td>Minimum initial investment on file</td><td class="tabular-nums">{f.min > 0 ? usd(f.min) : 'None reported'}</td></tr>
     </tbody></table></div>
   </section>
+  </details>
 
   <section data-chrome class="prose prose-slate mt-8 max-w-none">
     <h2>Where {t} ranks after tax</h2>
@@ -108,7 +113,7 @@ const rel = related(...[tx.vs, 'fifty-percent-rule', 'seven-day-yield', isMuni ?
       <thead><tr><th>State</th><th class="text-right">Rank</th><th class="text-right">Yield after tax</th><th class="text-right">Kept a year</th></tr></thead>
       <tbody>{sits.map((s) => <tr><td>{s.name}</td><td class="tabular-nums text-right">{s.pos} of {s.n}</td><td class="tabular-nums text-right">{pct(s.at)}</td><td class="tabular-nums text-right">{usd(s.net)}</td></tr>)}</tbody>
     </table></div>
-    <p>{`The rank compares ${t} with every other fund for a resident of that state. In a state with no income tax, such as Texas, funds whose dividends are taxed by states catch up, so the rank can be lower even though you keep more. In California, the fund ranked first kept ${usd(sits[0].gapTop)} a year more than ${t} on $50,000.`}</p>
+    <p>{`The rank compares ${t} with every other fund for a resident of that state. In Texas there is no state income tax, so you keep more with every fund; funds that lose a lot to state tax elsewhere move up the list, which can push ${t} down even though it pays you more there. In California, the fund ranked first kept ${usd(sits[0].gapTop)} a year more than ${t} on $50,000.`}</p>
     <p>A rank of past yields, not a recommendation, and this site does not say which fund to hold. Moving cash to another fund can involve a minimum or a fee set by your brokerage. <a href="/en/">Rank every fund for your situation</a>.</p>
   </section>
 

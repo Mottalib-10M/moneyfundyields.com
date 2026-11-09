@@ -12,7 +12,26 @@ export interface Fund {
   comp: Record<string, number>; usob: number; q: Record<string, number>; rep: string; filed: string; acc: string;
 }
 export const META = D.meta;
-export const FUNDS = D.funds as unknown as Fund[];
+/** Names as a reader can tell them apart (test naïf tour 4: « SDIT TREASURY II FUND » in capitals, « TREASURY TRUST FUND »
+ *  twice, « Money Market Account » read as a bank account). The filed name stays in `filedName`; the shown name is
+ *  the filed one in normal case, with the share class when two rows would carry the same name. */
+const KEEP = new Set(['SDIT', 'CNR', 'MM', 'II', 'III', 'U.S.', 'US', 'BNY', 'AB', 'ETF', 'CREF', 'NY']);
+const SMALL = new Set(['for', 'of', 'and', 'the', 'in']);
+const tidy = (x: string) => (x !== x.toUpperCase() ? x : x.split(' ').map((w, i) => (KEEP.has(w) || /\d/.test(w) ? w : w === 'FEDFUND' ? 'FedFund' : w === 'BLACKROCK' ? 'BlackRock'
+  : w.toLowerCase().replace(/(^|-)([a-z])/g, (_m, a, b) => a + b.toUpperCase()).replace(/^(For|Of|And|The|In)$/, (m) => (i > 0 && SMALL.has(m.toLowerCase()) ? m.toLowerCase() : m)))).join(' '));
+const RAW = D.funds as unknown as Fund[];
+const SAME = RAW.reduce<Record<string, number>>((m, f) => ((m[f.name] = (m[f.name] ?? 0) + 1), m), {});
+function shownName(f: Fund): string {
+  let n = tidy(f.name);
+  if (f.name === 'Money Market Account') n = `${f.reg} Money Market Account`;
+  if (SAME[f.name] > 1) {
+    let c = f.cls.replace(f.name, '').replace(/^[\s-]+/, '').trim();
+    c = tidy(c);
+    if (c && c !== n) n = `${n} · ${/^[A-Z0-9]{1,4}$/.test(c) ? `Class ${c}` : c}`;
+  }
+  return f.name === 'Money Market Account' ? `${n} (a fund, not a bank account)` : n;
+}
+export const FUNDS = RAW.map((f) => ({ ...f, filedName: f.name, name: shownName(f) })) as Array<Fund & { filedName: string }>;
 export const HISTORY = H as unknown as Record<string, Array<[string, number]>>;
 export const TBILLS = TB;
 export const PARAMS = P;

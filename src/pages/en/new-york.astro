@@ -7,7 +7,7 @@ import { afterTax, stateRate } from '../../lib/engine/tax';
 import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
 import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
 const nyMunis = FUNDS.filter((f) => f.k === 'state-muni' && f.st === 'NY');
-const s = (nyc: boolean) => ({ amount: 100000, state: 'NY', filing: 'single' as const, income: 250000, nyc });
+const s = (nyc: boolean) => ({ amount: 50000, state: 'NY', filing: 'single' as const, income: 120000, nyc });
 const swv = fund('SWVXX'), vus = fund('VUSXX'), vyf = fund('VYFXX');
 const city = stateRate(s(true)) - stateRate(s(false));
 const title = fitTitle(['New York Money Market Fund Tax: State, City and 50% Rule', 'New York Money Market Fund Tax: State, NYC and the 50% Rule']);
@@ -17,8 +17,8 @@ const description = fitDesc([
 ]);
 const faqs = [
   { q: 'Where do I subtract U.S. government interest on a New York return?', a: `On Form IT-201, the line for interest income on U.S. government bonds (line 28 in the 2025 instructions). For a mutual fund, the instructions limit the subtraction to funds that held at least 50% of their assets in U.S. obligations at the end of each quarter, and to the share of dividends from those obligations.` },
-  { q: 'Does New York City tax money market fund dividends?', a: `Yes, for city residents, and on the same base as the state: a dividend the state exempts is also out of the city tax. At $250,000 of income the city rate adds about ${pct(city, 2)} on the taxable part, which the calculator applies when you switch on New York City resident.` },
-  { q: 'Is a New York municipal money fund worth it in the city?', a: `It is the one fund type free of federal, state and city tax at once. On the filed yields VYFXX paid ${pct(vyf.y)} and VUSXX ${pct(vus.y)}; with the city switch on, compare the two at your income in the calculator. For a single city resident at $250,000 of income, ${afterTax(vus, s(true)).net >= afterTax(vyf, s(true)).net ? 'VUSXX' : 'VYFXX'} kept more on the filed yields.` },
+  { q: 'Does New York City tax money market fund dividends?', a: `Yes, for city residents, and on the same base as the state: a dividend the state exempts is also out of the city tax. At $120,000 of income the city rate adds about ${pct(city, 2)} on the taxable part, which the calculator applies when you switch on New York City resident.` },
+  { q: 'Is a New York municipal money fund worth it in the city?', a: `It is the one fund type free of federal, state and city tax at once. On the filed yields VYFXX paid ${pct(vyf.y)} and VUSXX ${pct(vus.y)}; with the city switch on, compare the two at your income in the calculator. For one city resident at $120,000 of income, ${afterTax(vus, s(true)).net >= afterTax(vyf, s(true)).net ? 'VUSXX' : 'VYFXX'} kept more on the filed yields.` },
 ];
 const out = afterTax(swv, s(true)), outT = afterTax(vus, s(true));
 ---
@@ -26,10 +26,10 @@ const out = afterTax(swv, s(true)), outT = afterTax(vus, s(true));
   h1="New York money market fund tax: state, city and the 50% rule"
   lede={`New York money market fund tax, state and city, spares the part of a dividend earned on U.S. obligations only if the fund held at least half its assets in them at every quarter end. Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, New York State and City rates for tax year 2025. Not tax or investment advice.`}
   faqs={faqs} related={related('fifty-percent-rule', 'fund-vyfxx', 'spaxx-vs-vmfxx')} sources={src('ny-it201i', 'nmfp', 'irs-rp', 'irs-niit')}>
-  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VUSXX" b="VYFXX" methodHref={METHOD} defState="NY" defIncome={250000} defAmount={100000} id="c-ny" />
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VUSXX" b="VYFXX" methodHref={METHOD} defState="NY" id="c-ny" />
   <div class="prose prose-slate mt-10 max-w-none">
     <h2>New York State and City tax on the same fund dividend, one exemption</h2>
-    <p>A New York City resident pays two income taxes on a money market fund dividend, the state’s and the city’s, both at progressive rates. The exemption works the same way for both. New York lets residents subtract interest on U.S. government obligations, and for a mutual fund it applies the same condition as California: the fund must have held at least 50% of its assets in such obligations at the end of each quarter of its tax year, and only the share of dividends from them is subtracted. Repo income does not qualify. A fund below 50% at a single quarter end gives no subtraction at all. The stakes are higher than elsewhere because the two rates stack: at $250,000 of income a city resident pays the state rate plus about {pct(city, 2)} to the city on every taxable dollar. On $100,000 held by a single filer at that income, the prime fund SWVXX, which paid {pct(swv.y)}, left {pct(out.afterTaxYield)} after federal, state and city tax, while the Treasury fund VUSXX, which paid {pct(vus.y)}, left {pct(outT.afterTaxYield)}. The data also holds {nyMunis.length} New York municipal share classes, free of all three taxes for residents; the calculator starts with one of them against VUSXX.</p>
+    <p>A New York City resident pays two income taxes on a money market fund dividend, the state’s and the city’s, both at progressive rates. The exemption works the same way for both. New York lets residents subtract interest on U.S. government obligations, and for a mutual fund it applies the same condition as California: the fund must have held at least 50% of its assets in such obligations at the end of each quarter of its tax year, and only the share of dividends from them is subtracted. Repo income does not qualify. A fund below 50% at a single quarter end gives no subtraction at all. The stakes are higher than elsewhere because the two rates stack: at $120,000 of income a city resident pays the state rate plus about {pct(city, 2)} to the city on every taxable dollar. On $50,000 held by one person at that income, the prime fund SWVXX, which paid {pct(swv.y)}, left {pct(out.afterTaxYield)} after federal, state and city tax, while the Treasury fund VUSXX, which paid {pct(vus.y)}, left {pct(outT.afterTaxYield)}. The data also holds {nyMunis.length} New York municipal share classes, free of all three taxes for residents; the calculator starts with one of them against VUSXX.</p>
   </div>
-  <StateTables st="NY" income={250000} nyc={true} />
+  <StateTables st="NY" nyc={true} />
 </ToolPage>

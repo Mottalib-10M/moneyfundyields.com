@@ -27,7 +27,7 @@ const faqs = [
 ---
 <ToolPage id="prime-vs-government-money-market-funds" title={title} description={description} crumb="Prime vs government"
   h1="Prime vs government money market funds after tax"
-  lede={`Prime money market funds take a little more credit risk than government funds for more yield, and states tax almost all of a prime fund’s dividend. Averages of the retail share classes in the data, 7-day yields as filed for ${day(spr.yDate)}. Not investment advice.`}
+  lede={`Prime money market funds take a little more credit risk than government funds for more yield, and states tax almost all of a prime fund’s dividend. Yields as filed for ${day(spr.yDate)}. Not investment advice.`}
   faqs={faqs} related={related('swvxx-vs-snsxx', 'fund-sprxx', 'money-market-fund-rules')} sources={src('nmfp', 'rule-2a7', 'ftb-ca', 'irs-rp')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SPRXX" b="SPAXX" methodHref={METHOD} id="c-pg" />
   <div class="prose prose-slate mt-10 max-w-none">

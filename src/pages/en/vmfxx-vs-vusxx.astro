@@ -5,7 +5,7 @@ import FundPair from '../../components/FundPair.astro';
 import YieldChart from '../../components/YieldChart.astro';
 import { fund, pct, usd, day, HISTORY } from '../../lib/data';
 import { afterTax } from '../../lib/engine/tax';
-import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { src, related, METHOD, PAGE_FUNDS, exampleVerdict } from '../../lib/common';
 import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
 const a = fund('VMFXX'), b = fund('VUSXX');
 const gapBp = Math.round((b.y - a.y) * 10000);
@@ -24,7 +24,7 @@ const faqs = [
 ---
 <ToolPage id="vmfxx-vs-vusxx" title={title} description={description} crumb="VMFXX vs VUSXX"
   h1="VMFXX vs VUSXX after federal and state tax"
-  lede={`VMFXX (Vanguard Federal) against VUSXX (Vanguard Treasury), 7-day yields as filed for ${day(a.yDate)}. Not investment advice.`}
+  lede={`VMFXX (Vanguard Federal) against VUSXX (Vanguard Treasury), 7-day yields as filed for ${day(a.yDate)}. ${exampleVerdict(a, b)} Not investment advice.`}
   faqs={faqs} related={related('fund-vmfxx', 'fund-vusxx', 'fifty-percent-rule')} sources={src('nmfp', 'ftb-ca', 'ny-it201i', 'nj-git5', 'irs-rp')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VUSXX" b="VMFXX" pick={false} methodHref={METHOD} id="c-vv" />
   <div class="prose prose-slate mt-10 max-w-none">

@@ -16,7 +16,7 @@ export default function StackedBar({ segments, total, ariaPrefix }: { segments: 
       <div className="flex h-9 overflow-hidden rounded-lg">
         {segments.map((s, i) => {
           const pct = (s.value / total) * 100; if (pct < 0.5) return null;
-          return <div key={i} className="flex items-center justify-center text-xs font-medium" style={{ width: `${pct}%`, backgroundColor: s.color, color: labelColor(s.color), minWidth: pct > 3 ? undefined : '4px' }} title={`${s.label}: ${pct.toFixed(1)}${PCT}`}>{pct > 9 && <span className="truncate px-1">{pct.toFixed(0)}{PCT}</span>}</div>;
+          return <div key={i} className="flex items-center justify-center text-xs font-medium" style={{ width: `${pct}%`, backgroundColor: s.color, color: labelColor(s.color), minWidth: pct > 3 ? undefined : '4px' }} title={`${s.label}: ${pct.toFixed(1)}${PCT}`}>{pct >= 12 && <span className="whitespace-nowrap px-1">{pct.toFixed(0)}{PCT}</span>}</div>;
         })}
       </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">

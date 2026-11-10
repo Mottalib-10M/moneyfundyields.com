@@ -10,7 +10,7 @@ const nat = avgYield((f) => f.k === 'muni'), st = avgYield((f) => f.k === 'state
 const ratio = nat.mean / gov.mean;
 const vms = fund('VMSXX'), vmf = fund('VMFXX'), vct = fund('VCTXX'), vus = fund('VUSXX');
 const cases = [60000, 150000, 300000, 800000].map((inc) => {
-  const s = { amount: 100000, state: 'CA', filing: 'single' as const, income: inc };
+  const s = { amount: 50000, state: 'CA', filing: 'single' as const, income: inc };
   return { inc, vct: afterTax(vct, s), vus: afterTax(vus, s), vms: afterTax(vms, s) };
 });
 const vusWins = cases.filter((c) => c.vus.net >= Math.max(c.vct.net, c.vms.net)).length;
@@ -40,14 +40,13 @@ const faqs = [
   <p>A single-state fund buys only from issuers in one state, usually California, New York, Massachusetts or New Jersey, where both taxes are high enough to justify a dedicated fund. For a resident of that state the dividend is free of both federal and state tax; New York funds also escape New York City tax. For anyone else the single-state fund is a national fund with fewer issuers to choose from. In the data the single-state classes averaged {pct(st.mean)} and the national ones {pct(nat.mean)}; residents of high-tax states compete for a limited supply of their own state’s short paper, which tends to hold single-state yields down.</p>
 
   <h2>A worked case in California</h2>
-  <p>Take $100,000 held by a single Californian, and compare three funds: the California municipal fund VCTXX ({pct(vct.y)} as filed), the national municipal fund VMSXX ({pct(vms.y)}) and the Treasury fund VUSXX ({pct(vus.y)}), whose dividend California does not tax. The after-tax yields at four income levels:</p>
+  <p>Take $50,000 held by one person in California, and compare three funds: the California municipal fund VCTXX ({pct(vct.y)} as filed), the national municipal fund VMSXX ({pct(vms.y)}) and the Treasury fund VUSXX ({pct(vus.y)}), whose dividend California does not tax. The after-tax yields at four income levels:</p>
   <div data-chrome class="overflow-x-auto"><table>
     <thead><tr><th>Taxable income</th><th class="text-right">VCTXX</th><th class="text-right">VMSXX</th><th class="text-right">VUSXX</th><th>Keeps most</th></tr></thead>
     <tbody>{cases.map((c) => { const best = [['VCTXX', c.vct.net], ['VMSXX', c.vms.net], ['VUSXX', c.vus.net]].sort((a, b) => (b[1] as number) - (a[1] as number))[0][0]; return <tr><td class="tabular-nums">${c.inc.toLocaleString('en-US')}</td><td class="tabular-nums text-right">{pct(c.vct.afterTaxYield)}</td><td class="tabular-nums text-right">{pct(c.vms.afterTaxYield)}</td><td class="tabular-nums text-right">{pct(c.vus.afterTaxYield)}</td><td>{best}</td></tr>; })}</tbody>
   </table></div>
   <p>With the yields filed this year, the Treasury fund keeps the most at {vusWins} of these four incomes: California does not tax its dividend either, and its yield is far higher. The municipal funds close the gap as the federal rate climbs. If municipal yields rise relative to taxable ones, the single-state fund overtakes the Treasury fund first in the top brackets. That is the kind of change the filed data shows month by month.</p>
 
-  <h2>Taxes the calculators do not model</h2>
   <p>Some municipal funds hold private activity bonds, whose interest is a preference item for the alternative minimum tax. Since the 2017 tax law raised the exemption, few households pay that tax, but those who do should check the share of AMT income in the fund’s year-end letter. The calculators here also ignore the phase-outs and credits that make a real marginal rate differ from the bracket rate. And municipal funds held in a tax-deferred account waste their exemption: inside an IRA, compare funds on yield alone.</p>
 
   <h2>Municipal money market funds in the data</h2>

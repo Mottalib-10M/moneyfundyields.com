@@ -13,7 +13,7 @@ const SPECS: Record<string, MiniSpec> = {
     run: (v) => {
       const y = v.y / 100, a = v.a;
       return { head: ['Dividends over a year at this yield, before tax', usd(a * y)],
-        rows: [['A month, before tax', usd((a * y) / 12)], ['A week, before tax', usd((a * y * 7) / 365)], ['Yield if dividends are reinvested every day (effective yield, comparable with a bank APY)', pct((1 + y / 365) ** 365 - 1)]],
+        rows: [['A month, before tax', usd((a * y) / 12)], ['A week, before tax', usd((a * y * 7) / 365)], ['The same yield counted like a bank APY (dividends left in)', pct((1 + y / 365) ** 365 - 1)]],
         note: 'Only if the yield stayed where it is for a year, which it never does exactly. Tax comes out of these amounts: the full calculator shows what you keep.' };
     },
   },

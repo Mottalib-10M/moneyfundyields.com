@@ -1,6 +1,6 @@
 ---
 import ToolPage from '../../components/ToolPage.astro';
-import AfterTaxCalc, { effective } from '../../components/calc/AfterTaxCalc';
+import AfterTaxCalc, { effective, simpleOfApy } from '../../components/calc/AfterTaxCalc';
 import { fund, pct, usd, day } from '../../lib/data';
 import { afterTax, stateOptions } from '../../lib/engine/tax';
 import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
@@ -17,6 +17,9 @@ const need = (st: string) => {
   for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; afterTax({ y: m, k: 'prime', usob: 0, q: { x: 0 } }, s).afterTaxYield < target ? (lo = m) : (hi = m); }
   return hi;
 };
+// Verdict de l'exemple du calculateur (épargne à 4 % APY), annoncé dès le premier écran (règle 2), lu dans le moteur.
+const exF = kept('CA'), exB = afterTax({ y: simpleOfApy(0.04), k: 'prime', usob: 0, q: { x: 0 } }, { amount: 50000, state: 'CA', filing: 'single', income: 120000 });
+const exGap = Math.round(exF.net) - Math.round(exB.net);
 const rows = ['CA', 'NY', 'NJ', 'IL', 'PA', 'TX'].map((st) => { const m = need(st); return { st, apy: effective(m), extra: (m - f.y) * 50000 }; });
 const title = fitTitle(['Money Market vs High-Yield Savings: Which Keeps More?', 'Money Market vs High-Yield Savings: Which Keeps More After Tax']);
 const description = fitDesc([
@@ -26,25 +29,26 @@ const description = fitDesc([
 const faqs = [
   { q: 'Is a money market fund the same as a money market account?', a: `No. A money market account is a bank deposit, insured by the FDIC up to the legal limit, with a rate the bank sets. A money market fund is a mutual fund that holds short-term debt, is not insured, and pays dividends. Both are called money market, which causes most of the confusion.`, open: true },
   { q: 'Is savings account interest taxed by my state?', a: `Yes. Bank interest is fully taxable by every state with an income tax, unlike interest on U.S. Treasury obligations. That is why a Treasury money fund can leave more after tax than a savings account paying a higher rate, as the table on this page shows for six states.` },
-  { q: 'Which is safer, a savings account or a Treasury money fund?', a: `A savings account is insured by the FDIC up to $250,000 per depositor, per bank, per ownership category. A Treasury money fund is not insured; it holds short Treasury debt and aims to keep a $1.00 share price, which rule 2a-7 supports but does not guarantee. The kinds of risk differ.` },
+  { q: 'Which is safer, a savings account or a Treasury money fund?', a: `A savings account is insured by the FDIC up to $250,000 per depositor, per bank, per ownership category. A Treasury money fund is not insured; it holds short Treasury debt and aims to keep a $1.00 share price, which federal rules support but do not guarantee. The kinds of risk differ.` },
 ];
 ---
 <ToolPage id="money-market-vs-high-yield-savings" title={title} description={description} crumb="Money fund vs savings"
   h1="Money market fund vs high-yield savings, after tax"
-  lede={`Type the rate your bank pays (its APY, annual percentage yield) and see whether a Treasury money fund would leave you more after tax. A money market fund is not a bank money market account: the account is an FDIC-insured deposit, the fund an uninsured investment. Fund yield as reported for ${day(f.yDate)}. Not investment advice.`}
+  lede={`Money market vs high-yield savings: type your bank’s APY (the yearly rate it advertises) to see if a Treasury fund (VUSXX to start) leaves more. In the example below (one person in California, $120,000 of taxable income, $50,000, a bank at 4.00% APY), ${exGap >= 0 ? `the fund leaves ${usd(exGap)} more a year than the bank` : `the bank leaves ${usd(-exGap)} more a year than the fund`}.`}
   faqs={faqs} related={related('fund-vusxx', 'treasury-bills-vs-money-market-funds', 'us-government-obligations-percentage')} sources={src('nmfp', 'irs-rp', 'ftb-ca-rates', 'nj-1040', 'rule-2a7')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VUSXX" alt={{ kind: 'savings', label: 'Savings account', defYield: 0.04, help: 'The APY the bank advertises today' }} methodHref={METHOD} id="c-hy" />
-  <p data-chrome class="mt-6 rounded-xl border border-navy-200 bg-navy-50 p-4 text-navy-800"><strong>Safety first.</strong> A savings account at a bank is insured by the FDIC (the U.S. agency that insures bank deposits) up to $250,000 per depositor, per bank. A money market fund is not a bank account and is not insured; a Treasury fund holds short U.S. Treasury debt and aims to keep each share at $1.00. What protects it instead: under the SEC’s rule 2a-7 (the federal rule for money funds), a fund may hold only short, high-quality debt, with an average maturity of 60 days at most, and must keep at least a quarter of its money in cash or assets it can turn into cash within one business day. A government fund keeps at least 99.5% in cash, U.S. government securities and loans backed by them. These limits are not a guarantee: a fund can still lose money.</p>
+  {/* Testeurs naïfs du 2026-11-10 : une phrase, un chiffre ; sigles expliqués sur place. */}
   <div class="prose prose-slate mt-10 max-w-none">
     <h2>The rate to beat is higher than it looks</h2>
-    <p>Savings account rates and money fund yields are quoted in nearly the same way, an annual percentage, so the temptation is to compare them directly. Tax gets in the way. Interest from a bank is taxed by your state in full. Dividends of a fund that holds only Treasury securities are not taxed by any state, because federal law bars states from taxing interest on U.S. obligations and funds pass that exemption to shareholders. A savings account therefore has to pay more than a Treasury fund just to break even after tax, and how much more depends on your state rate. The table below runs that break-even for a single filer with $120,000 of taxable income against Vanguard Treasury Money Market (VUSXX), which filed a 7-day yield of {pct(f.y)}. An APY counts interest earned on interest and a 7-day yield does not, so the comparison is made on the same basis and the answer is given back as an APY, the rate your bank advertises. In Texas, with no income tax, the answer is simply the fund’s yield expressed as an APY, {pct(effective(f.y))}. In California the account needs noticeably more. The calculator above lets you type the APY you were offered, pick any fund, and see the dollar difference on your balance. Remember that an advertised APY can be a promotional rate that falls after a few months, and a fund yield also moves with every change in short-term rates.</p>
+    <p>Your state taxes bank interest in full. It does not tax the dividends of a fund that holds only U.S. Treasury debt. So a savings account must pay more than a Treasury fund just to leave you the same after tax. How much more depends on your state: the table below gives the rate your bank must beat. In Texas, with no income tax, it is simply the fund’s yield counted like an APY, {pct(effective(f.y))}. Remember that an advertised APY can be a promotional rate that drops after a few months. A fund’s yield moves too, with every change in short-term rates. And the two are not the same kind of product: the bank deposit is insured, the fund is not. The calculator above shows the dollars a year for your own rate and balance. No brokerage account? A money fund is bought through one, opened with a fund company or a broker, which sets the funds offered, the minimum and any fee.</p>
   </div>
+  <p data-chrome class="mt-6 rounded-xl border border-navy-200 bg-navy-50 p-4 text-navy-800"><strong>Safety first.</strong> A bank savings account is insured by the FDIC (the U.S. agency that insures bank deposits) up to $250,000 per depositor, per bank. A money market fund is not a bank account and is not insured. Federal rules let it hold only short, high-quality debt and make it keep cash on hand; a Treasury fund holds short U.S. Treasury debt and aims to keep each share at $1.00. These limits are not a guarantee: a fund can still lose money.</p>
   <section data-chrome class="prose prose-slate mt-8 max-w-none">
     <h2>APY a high-yield savings account must pay to match VUSXX after tax</h2>
     <div class="overflow-x-auto"><table>
-      <thead><tr><th>State</th><th class="text-right">Break-even APY</th><th class="text-right">Extra interest a year at that APY on {usd(50000)}, all taken back by state tax</th></tr></thead>
-      <tbody>{rows.map((r) => <tr><td>{names[r.st]}</td><td class="tabular-nums text-right">{pct(r.apy)}</td><td class="tabular-nums text-right">{usd(r.extra)}</td></tr>)}</tbody>
+      <thead><tr><th>State</th><th class="text-right">Your bank must pay at least</th><th class="text-right">At that rate, extra bank interest a year that state tax takes back</th></tr></thead>
+      <tbody>{rows.map((r) => <tr><td>{names[r.st]}</td><td class="tabular-nums text-right">{pct(r.apy)} APY</td><td class="tabular-nums text-right">{usd(r.extra)}</td></tr>)}</tbody>
     </table></div>
-    <p>Single filer, $120,000 of taxable income, VUSXX at its filed 7-day yield ({pct(f.y)}), savings interest fully taxable by the state. The second figure: at the break-even APY the bank pays this much more interest a year than the fund, before tax, and your state tax takes exactly that back.</p>
+    <p>One person with $120,000 of taxable income and $50,000, against VUSXX at {pct(f.y)} before tax. Example, California: at {pct(rows[0].apy)} APY the bank pays {usd(rows[0].extra)} a year more than the fund, but California tax takes all of it.</p>
   </section>
 </ToolPage>

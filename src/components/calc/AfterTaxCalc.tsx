@@ -6,7 +6,7 @@ import NumberField from '../ui/NumberField';
 import SelectField from '../ui/SelectField';
 import Toggle from '../ui/Toggle';
 import StackedBar from '../ui/StackedBar';
-import { afterTax, hasSchedule, isNoTax, stateName, stateOptions, stateRule, type Filing, type FundTax, type Result } from '../../lib/engine/tax';
+import { afterTax, hasSchedule, isNoTax, stateName, stateOptions, stateRule, STANDARD_DEDUCTION, type Filing, type FundTax, type Result } from '../../lib/engine/tax';
 import { formatMoney } from '../../lib/format';
 import { readParams, num, str, updateURL } from '../../lib/url-state';
 import MentionExemple from './MentionExemple';
@@ -25,7 +25,9 @@ interface Props {
 const pct = (x: number, d = 2) => `${(x * 100).toFixed(d)}%`;
 const STATES = stateOptions();
 /** Where to find the figure (test naïf 2026-11-09: « je ne connais pas mon revenu imposable, je taperai mon brut »). */
-export const TAXABLE_HELP = 'Form 1040 “taxable income” line, not salary. Rough is fine';
+// Testeurs naïfs du 2026-11-10 (règle 5) : une règle simple et une issue « je ne sais pas » ; chiffres lus dans le moteur.
+const usd0 = (n: number) => `$${n.toLocaleString('en-US')}`;
+export const TAXABLE_HELP = `Not sure? Your yearly pay minus ${usd0(STANDARD_DEDUCTION.single)} if single, ${usd0(STANDARD_DEDUCTION.joint)} if married. A guess is fine`;
 /** Simple 7-day yield to the yield of a year of daily reinvested dividends, the basis of an APY. */
 export const effective = (y: number) => (1 + y / 365) ** 365 - 1;
 /** The reverse: an APY back to the simple yearly rate of daily interest, the basis of a 7-day yield. */
@@ -100,17 +102,17 @@ export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState =
   const opts = funds.map((f) => ({ value: f.t, label: optionLabel(f.t, f.name) }));
   const rule = stateRule(state);
   const example = !touched && state === defState && filing === defFiling && income === defIncome && amount === defAmount;
-  const who = `${defFiling === 'joint' ? 'a married couple filing jointly' : 'a single filer'} in ${stateName(defState)}, ${formatMoney(defIncome)} of taxable income, ${formatMoney(defAmount)} of cash`;
+  const who = `${defFiling === 'joint' ? 'a married couple' : 'one person'} in ${stateName(defState)}, ${formatMoney(defIncome)} of taxable income, ${formatMoney(defAmount)} saved`;
 
   return (
     <div data-chrome data-outil className="not-prose grid gap-6 rounded-xl border border-navy-200 bg-white p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <form className="grid content-start gap-x-4 gap-y-3 sm:grid-cols-2" onSubmit={(e) => e.preventDefault()} aria-label="Your tax situation">
-        {example && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-navy-800 sm:col-span-2"><strong>Example:</strong> {who}. Change the boxes to your own numbers (every page starts from this example).</p>}
+        {example && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-navy-800 sm:col-span-2"><strong>Example:</strong> {who}. Change the boxes to yours.</p>}
         {pick && <SelectField id={`${id}-fund`} label={b ? 'First fund' : 'Fund'} value={fundA.t} onChange={setFa} options={opts} className="sm:col-span-2" />}
         {!pick && b && <p className="text-sm text-navy-700 sm:col-span-2"><span className="font-medium">First fund:</span> {fundA.t} · {fundA.name}</p>}
         {b && <SelectField id={`${id}-vs`} label="Second fund" value={fundB?.t ?? ''} onChange={setFb} options={opts} className="sm:col-span-2" />}
-        {alt && <NumberField id={`${id}-alt`} label={alt.kind === 'savings' ? 'Savings account rate (APY)' : `${alt.label} yield you see`} value={altYield} onChange={mine(setAltYield)} unit="%" max={20} decimals={2} help={alt.help} />}
-        {alt?.kind === 'etf' && <NumberField id={`${id}-alts`} label="Share from Treasuries" value={altShare} onChange={setAltShare} unit="%" max={100} help="Leave 100% for an ETF that holds only Treasuries; its year-end tax letter gives the exact share" />}
+        {alt && <NumberField id={`${id}-alt`} label={alt.kind === 'savings' ? 'Savings account rate (APY)' : `${alt.label} yield you see`} value={altYield} onChange={mine(setAltYield)} unit="%" max={20} decimals={2} help={alt.help} className={alt.kind === 'etf' ? '' : 'sm:col-span-2'} />}
+        {alt?.kind === 'etf' && <NumberField id={`${id}-alts`} label="Share from Treasuries" value={altShare} onChange={setAltShare} unit="%" max={100} help="Not sure? Leave 100%: right for SGOV, BIL and other ETFs that hold only Treasury bills" />}
         <SelectField id={`${id}-st`} label="State you live in" value={state} onChange={mine(setState)} options={STATES} />
         <NumberField id={`${id}-inc`} label="Taxable income" value={income} onChange={mine(setIncome)} unit="$" max={10_000_000} help={TAXABLE_HELP} />
         <Toggle id={`${id}-fs`} label="Filing status" value={filing} onChange={mine((v: string) => setFiling(v === 'joint' ? 'joint' : 'single'))} options={[{ value: 'single', label: 'Single' }, { value: 'joint', label: 'Married, joint' }]} />
@@ -128,34 +130,34 @@ export default function AfterTaxCalc({ funds, a, b, alt, pick = true, defState =
       </form>
       <div data-resultat aria-live="polite" className="rounded-xl bg-accent-50 p-4 sm:p-5">
         <MentionExemple lang="en" touched={example ? {} : { any: true }} />
-        <ResultHead r={ra} name={fundA.t} />
+        <ResultHead r={ra} name={fundA.t} amount={amount} before={`${pct(fundA.y)} before tax`} />
         <Lines r={ra} rule={rule} name={fundA.t} />
         {ranking && <div data-rang className="mt-4 rounded-lg border border-accent-200 bg-white p-3 text-sm text-navy-800">
           <p>Rank <strong className="tabular-nums">{ranking.pos} of {ranking.n}</strong> after tax {example ? 'in this example' : 'for you'}.</p>
           <p className="tabular-nums mt-1">{ranking.pos === 1 ? `No fund in the data keeps more.` : <>The top fund, {ranking.top.f.name} ({ranking.top.f.t}), keeps <strong>{formatMoney(gapShown(ranking.top.r.net, ra.net))} more a year</strong> on {formatMoney(amount)}.</>}</p>
-          <p className="mt-1 text-xs text-navy-600">{fundA.t} may be just your brokerage’s default. Your brokerage decides which other funds you can buy there, with what minimum and fee: check its list before moving cash. Not a bank account: not FDIC-insured.</p>
+          <p className="mt-2 text-sm text-navy-800"><strong>What to check next:</strong> search a higher fund of the <a className="underline" href="/en/#rank">ranking</a> in your brokerage account; check its minimum and any fee.</p>
         </div>}
         {second && <div className="mt-4 border-t border-accent-200 pt-3">
           {/* The answer first, then the detail of the second fund (test naïf 2026-11-09: the conclusion came after two blocks). */}
           <p data-ecart className="mb-3 rounded-lg bg-white px-3 py-2 text-base text-navy-900">{gapShown(ra.net, second.net) >= 0
             ? <>{fundA.t} leaves <strong>{formatMoney(gapShown(ra.net, second.net))}</strong> more a year than {secondInText}.</>
             : <>{secondName} leaves <strong>{formatMoney(gapShown(second.net, ra.net))}</strong> more a year than {fundA.t}.</>}</p>
-          {vsApy && <p className="mb-2 text-xs text-navy-700">Your bank’s {pct(altYield / 100)} APY pays about <strong>{formatMoney(amount * altYield / 100)}</strong> a year on {formatMoney(amount)}, interest on interest included. Fund yields leave that out, so the bank is counted the same way here: {pct(simpleOfApy(altYield / 100))}, {formatMoney(second.gross)} a year. Reinvested, both earn a little more.</p>}
-          <ResultHead r={second} name={secondName} small paid={altPaid} />
+          {vsApy && <p className="mb-2 text-sm text-navy-800">Your bank’s {pct(altYield / 100)} APY pays about <strong>{formatMoney(amount * altYield / 100)}</strong> a year with interest left in. A fund’s yield leaves out interest on interest; counted the same way, the bank pays <strong>{formatMoney(second.gross)}</strong>.</p>}
+          <ResultHead r={second} name={secondName} small paid={altPaid} amount={amount} before={vsApy ? `${pct(altYield / 100)} APY` : `${pct(fundB ? fundB.y : altYield / 100)} before tax`} />
           <Lines r={second} rule={rule} name={secondName} paid={altPaid === 'interest' ? 'Interest' : 'Dividends'} bank={vsApy} small />
-          {vsApy && <p className="mt-2 text-xs text-navy-700">No brokerage account? A money fund is bought through one, opened with a fund company or a broker, which sets the funds offered, the minimum and fees. A bank’s money market <em>account</em> is not a fund.</p>}
         </div>}
-        <p className="mt-3 text-xs text-navy-600">{dates.length > 1 ? `Yields reported by the funds for ${fundA.t} ${longDate(fundA.yDate)}, ${fundB!.t} ${longDate(fundB!.yDate)}` : `Yield reported by the fund for ${longDate(fundA.yDate)}`}; yields change daily. Estimate, not tax or investment advice. Nothing you type leaves your browser. <a href={methodHref} className="underline">How it is computed</a></p>
+        <p className="mt-3 text-xs text-navy-600">{dates.length > 1 ? `Yields of ${fundA.t} ${longDate(fundA.yDate)}, ${fundB!.t} ${longDate(fundB!.yDate)}` : `${fundA.t} yield of ${longDate(fundA.yDate)}`}{alt ? `; the ${alt.kind === 'savings' ? 'bank rate' : alt.kind === 'etf' ? 'ETF yield' : 'bill rate'} as typed` : ''}. Estimate, not advice. Nothing you type leaves your browser. <a href={methodHref} className="underline">Method</a></p>
       </div>
     </div>
   );
 }
 
-function ResultHead({ r, name, small = false, paid = 'dividends' }: { r: Result; name: string; small?: boolean; paid?: string }) {
+function ResultHead({ r, name, small = false, paid = 'dividends', amount, before }: { r: Result; name: string; small?: boolean; paid?: string; amount: number; before: string }) {
+  // Sous le gros chiffre, ce qu'il suppose et sur quelle période (testeurs naïfs du 2026-11-10 : « 3.55 % dans le titre, 2.60 % ici : lequel croire ? »).
   return (<div>
-    <p className="text-sm font-medium text-navy-700">{name} after federal and {r.rule === 'none' ? 'no state' : r.stateLabel} tax</p>
-    <p className={`tabular-nums font-bold text-navy-900 ${small ? 'text-2xl' : 'text-4xl'}`}>{pct(r.afterTaxYield)}</p>
-    <p className="tabular-nums text-sm text-navy-700">{formatMoney(r.net)} a year kept on {formatMoney(r.gross)} of {paid}</p>
+    <p className="text-sm font-medium text-navy-700">{name}, kept after federal and {r.rule === 'none' ? 'no state' : r.stateLabel} tax</p>
+    <p className={`tabular-nums font-bold text-navy-900 ${small ? 'text-2xl' : 'text-4xl'}`}>{pct(r.afterTaxYield)} <span className="text-base font-semibold">· {formatMoney(r.net)} a year</span></p>
+    <p className="tabular-nums text-sm text-navy-700">{formatMoney(amount)} for one year at {before}: {formatMoney(r.gross)} of {paid}, minus tax</p>
   </div>);
 }
 
@@ -164,7 +166,8 @@ function Lines({ r, rule, name, paid = 'Dividends', small = false, bank = false 
   // The rate applies to the taxed part only, and the line says so (test naïf 2026-11-09: « 9,3 % de 1 775 $, ça ne fait pas 48 $ »).
   const freeAmt = formatMoney(r.gross * r.exemptShare);
   const taxed = `${pct(r.stateRate, 2)} on the ${formatMoney(r.stateTaxable)} ${rule === 'unverified' ? 'the state' : r.stateLabel} taxes`;
-  const free = r.stateTaxable <= 0.5 ? `none: all ${formatMoney(r.gross)} is free of ${r.stateLabel} tax` : `${taxed}; the other ${freeAmt} is free of it`;
+  // Pourquoi une part échappe à l'État, dit sur place (testeurs naïfs du 2026-11-10 : « je ne sais pas pourquoi »).
+  const free = r.stateTaxable <= 0.5 ? `none: all ${formatMoney(r.gross)}, earned on U.S. government debt, is free of ${r.stateLabel} tax` : `${r.stateLabel} taxes only ${formatMoney(r.stateTaxable)} of it, at ${pct(r.stateRate, 2)}; the other ${freeAmt}, earned on U.S. government debt, is free of state tax`;
   const note = rule === 'none' ? 'none: no state income tax' : bank ? `${taxed}: bank interest is taxed in full`
     : rule === 'fifty' ? (r.fifty === 'fails' ? `${taxed}: the fund missed the 50% rule, so all of it is taxed` : free)
     : rule === 'unverified' ? (r.stateTaxable <= 0.5 ? `none: all ${formatMoney(r.gross)} assumed free of state tax` : `${taxed}; the other ${freeAmt} assumed free of it`) : free;

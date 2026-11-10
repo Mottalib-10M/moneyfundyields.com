@@ -8,7 +8,9 @@ import { t } from '../i18n/ui';
 import { articleSchema, faqSchema, breadcrumbSchema, webPageSchema, type FAQItem } from '../lib/seo';
 import { LAST_UPDATED, AUTHOR_NAME } from '../data/site-config';
 interface Props { lang: Locale; id: string; title: string; h1: string; description: string; intro: string; resume?: string; faqs?: FAQItem[]; related?: Array<{ href: string; name: string; description: string }>; sources?: Array<{ name: string; url: string }>; breadcrumbLabel: string; noindex?: boolean; showAuthor?: boolean }
-const { lang, id, title, h1, description, intro, resume, faqs = [], related = [], sources = [], breadcrumbLabel, noindex = false, showAuthor = true } = Astro.props;
+const { lang, id, title, h1, description, intro, resume, related = [], sources = [], breadcrumbLabel, noindex = false, showAuthor = true } = Astro.props;
+// Trois questions au plus par page (testeurs naïfs du 2026-11-10, règle 3) : la page les range par ordre d'importance.
+const faqs = (Astro.props.faqs ?? []).slice(0, 3);
 const ui = t(lang);
 const path = route(id, lang);
 const jsonLd = [articleSchema({ title: h1, description, path, lang }), webPageSchema({ name: h1, description, path, lang }), breadcrumbSchema([{ name: t(lang).breadcrumbHome, path: route('home', lang) }, { name: breadcrumbLabel, path }])];

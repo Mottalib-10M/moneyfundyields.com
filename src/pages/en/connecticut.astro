@@ -7,7 +7,7 @@ import { afterTax, stateRate } from '../../lib/engine/tax';
 import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
 import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
 const fdl = fund('FDLXX'), snv = fund('SNVXX');
-const sit = { amount: 200000, state: 'CT', filing: 'joint' as const, income: 300000 };
+const sit = { amount: 50000, state: 'CT', filing: 'single' as const, income: 120000 };
 const a = afterTax(fdl, sit), b = afterTax(snv, sit);
 const top = stateRate({ state: 'CT', filing: 'single', income: 600000 });
 const title = fitTitle(['Connecticut Money Market Fund Tax: 50% Test and Rates', 'Connecticut Money Market Fund Tax: The 50% Test and Rates']);
@@ -25,10 +25,10 @@ const faqs = [
   h1="Connecticut money market fund tax: the 50% test and the rates"
   lede={`Connecticut money market fund tax spares the part of a dividend earned on U.S. obligations only if the fund held at least half its assets in them at every quarter end. Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, Connecticut rates for tax year 2025. Not tax or investment advice.`}
   faqs={faqs} related={related('fifty-percent-rule', 'fund-fdlxx', 'fund-snvxx')} sources={src('ct-ps', 'ct-olr', 'nmfp', 'irs-rp')}>
-  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="FDLXX" b="SNVXX" methodHref={METHOD} defFiling="joint" defState="CT" defIncome={300000} defAmount={200000} id="c-ct" />
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="FDLXX" b="SNVXX" methodHref={METHOD} defState="CT" id="c-ct" />
   <div class="prose prose-slate mt-10 max-w-none">
     <h2>Connecticut tax on fund dividends: same test as California and New York, lower rates</h2>
-    <p>Connecticut belongs to the small group of states that attach a threshold to the exemption for fund dividends. Its Department of Revenue Services treats the part of a fund’s dividend that comes from U.S. obligations as exempt only when the fund held at least half of its assets in such obligations at the close of each quarter. Below that line, the whole dividend is taxable. Connecticut rates are lower than California’s or New York’s, so the stakes per dollar are smaller, but balances held by Connecticut households are often large. Take a joint return at $300,000 of income with {usd(200000)} in a money fund. Fidelity’s Treasury Only fund FDLXX, which filed {pct(fdl.y)} and held nothing but Treasuries, left {pct(a.afterTaxYield)} after tax, or {usd(a.net)} a year. Schwab Government Money Fund SNVXX, which filed {pct(snv.y)} but held most of its money in repo and stayed below 50% at both quarter ends in the data, left {pct(b.afterTaxYield)}, or {usd(b.net)}. The yields before tax were close; the result after tax was not.</p>
+    <p>Connecticut belongs to the small group of states that attach a threshold to the exemption for fund dividends. Its Department of Revenue Services treats the part of a fund’s dividend that comes from U.S. obligations as exempt only when the fund held at least half of its assets in such obligations at the close of each quarter. Below that line, the whole dividend is taxable. Connecticut rates are lower than California’s or New York’s, so the stakes per dollar are smaller, but balances held by Connecticut households are often large. Take one person at $120,000 of taxable income with {usd(50000)} in a money fund. Fidelity’s Treasury Only fund FDLXX, which filed {pct(fdl.y)} and held nothing but Treasuries, left {pct(a.afterTaxYield)} after tax, or {usd(a.net)} a year. Schwab Government Money Fund SNVXX, which filed {pct(snv.y)} but held most of its money in repo and stayed below 50% at both quarter ends in the data, left {pct(b.afterTaxYield)}, or {usd(b.net)}. The yields before tax were close; the result after tax was not.</p>
   </div>
   <StateTables st="CT" />
 </ToolPage>

@@ -5,7 +5,7 @@ import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
 import YieldChart from '../../components/YieldChart.astro';
 import { FUND_TICKERS } from '../../lib/pages';
 import { FUNDS as PAGE_ALL, fund, pct, bn, usd, day, drag, filingUrl, quarterLabel, COMP_LABEL, KIND_LABEL, HISTORY, META, rank, monthName } from '../../lib/data';
-import { fiftyTest, stateName } from '../../lib/engine/tax';
+import { fiftyTest, stateName, afterTax } from '../../lib/engine/tax';
 import { src, related, METHOD, PAGE_FUNDS, LITES } from '../../lib/common';
 import { TEXT, ctx } from '../../content/funds';
 import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
@@ -46,13 +46,17 @@ const sits = [['CA', 'California'], ['NY', 'New York'], ['TX', 'Texas']].map(([s
 /** Role of the fund in a brokerage account, when the site already states it (pages.ts, spaxx-vs-vmfxx). */
 const ROLE: Record<string, string> = { SPAXX: 'the fund Fidelity uses by default for the uninvested cash in a brokerage account', VMFXX: 'the fund Vanguard uses by default for the uninvested cash in a brokerage account' };
 const dr = drag(f);
+// Le résultat de l'exemple annoncé dès le premier écran (testeurs naïfs du 2026-11-10, règle 2), lu dans le moteur.
+const exSt = f.st ?? 'CA';
+const ex = afterTax(f, { amount: 50000, state: exSt, filing: 'single', income: 120000 });
 // Median fee gap of all classes, to tell the reader if this one is cheap or dear (test naïf 2026-11-09:
 // « une phrase en langage courant en tête, le détail replié »).
 const drags = PAGE_ALL.map((x) => drag(x)).filter((x): x is number => x != null).sort((a, b) => a - b);
 const medDrag = drags[Math.floor(drags.length / 2)];
 const feeWord = dr == null ? null : dr > medDrag * 1.5 ? 'more than most funds' : dr < medDrag / 1.5 ? 'less than most funds' : 'about as much as most funds';
 const plain = [
-  dr != null ? `${t} takes about ${pct(dr)} a year of its yield for fees, ${feeWord} (the middle figure across the ${drags.length} share classes is ${pct(medDrag)}).` : '',
+  // Un seul repère pour les frais sur tout le site : la médiane (testeurs naïfs du 2026-11-10 : 0.38 % ici, « average 0.42 % » ailleurs).
+  dr != null ? `${t} takes ${pct(dr)} a year of its yield for fees, ${feeWord}: the typical fund takes ${pct(medDrag)}.` : '',
   isMuni ? `Its dividends are free of federal tax${f.st ? `, and of ${stateName(f.st)} tax for residents of that state` : ''}, which is why its yield before tax is lower.`
     : test === 'passes' ? `It kept at least half its money in U.S. government debt at each quarter end, so in California, Connecticut and New York the part of its dividend earned on that debt stays free of state tax.`
     : `It kept less than half its money in U.S. government debt at a quarter end, so California, Connecticut and New York tax its whole dividend.`,
@@ -62,28 +66,14 @@ const faqs = tx.faqs(c);
 const rel = related(...[tx.vs, 'fifty-percent-rule', 'seven-day-yield', isMuni ? 'municipal-money-market-funds' : 'us-government-obligations-percentage'].filter(Boolean) as string[]);
 ---
 <ToolPage id={`fund-${t.toLowerCase()}`} title={title} description={description} crumb={t}
-  h1={`${t} yield: ${y} as filed, and what it keeps after tax`}
-  lede={`${t} is ${ROLE[t] ? `${f.name}, ${ROLE[t]}` : `the ticker of ${f.name}`}. Here is what it paid and what you keep after tax. Yield reported by the fund for ${day(f.yDate)}, its last business day in the ${monthName(META.month.slice(0, 7))} report; holdings as of ${day(f.rep)}, the date of that report. The fund’s own site shows today’s figure. Not investment advice.`}
+  h1={`${t} yield: ${y} before tax, and what it keeps after tax`}
+  lede={`${t} is ${ROLE[t] ? `${f.name}, ${ROLE[t]}` : `the ticker of ${f.name}`}. Its yield was ${y} before tax on ${day(f.yDate)}, its latest report (the fund’s site shows today’s). In the example below (one person in ${stateName(exSt)}, $120,000 of taxable income, $50,000 in the fund) it keeps ${usd(ex.net)} a year after tax. Not investment advice.`}
   faqs={faqs} related={rel} sources={sources}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a={t} pick={false} methodHref={METHOD} defState={f.st ?? 'CA'} id={`c-${t.toLowerCase()}`} rankAll={LITES} />
 
-  <section class="prose prose-slate mt-10 max-w-none">
-    <h2>What the filings say about {t}</h2>
-    <p><strong>In plain words:</strong> {plain} <strong>In detail:</strong> {tx.angle(c)}</p>
-  </section>
-
-  <section data-chrome class="prose prose-slate mt-8 max-w-none">
-    <h2>{t} 7-day yield as filed, {day(h[0][0])} to {day(h[h.length - 1][0])}</h2>
-    <YieldChart series={[{ label: `${t} 7-day net yield`, points: h, color: '#1F5C4A' }]} caption={`Daily values reported by the fund in its monthly Form N-MFP filings.`} />
-    <div class="overflow-x-auto"><table>
-      <thead><tr><th>Last day reported in the month</th><th class="text-right">7-day yield, after the fund’s fees</th></tr></thead>
-      <tbody>{monthEnds.map((p) => <tr><td>{day(p[0])}</td><td class="tabular-nums text-right">{pct(p[1])}</td></tr>)}</tbody>
-    </table></div>
-    <p>A fund reports these yields once a month, within five business days of month end. Between two reports the figure here ages: by the time the {monthName(META.month.slice(0, 7))} report is replaced, it is up to five weeks old. The fund’s own site shows today’s figure.</p>
-  </section>
-
-  <details class="mt-8 rounded-xl border border-navy-200 p-4 sm:p-5">
+  <details class="mt-6 rounded-xl border border-navy-200 p-4 sm:p-5">
   <summary class="cursor-pointer text-lg font-bold text-navy-900">{t} in detail: what it held, the 50% test, costs and maturity</summary>
+  <div class="prose prose-slate mt-4 max-w-none"><p>{tx.angle(c)}</p><p>{tx.watch(c)}</p></div>
   <section data-chrome class="prose prose-slate mt-4 max-w-none">
     <h2>What {t} held on {day(f.rep)}</h2>
     <div class="overflow-x-auto"><table>
@@ -117,6 +107,17 @@ const rel = related(...[tx.vs, 'fifty-percent-rule', 'seven-day-yield', isMuni ?
   </section>
   </details>
 
+  <section class="prose prose-slate mt-10 max-w-none">
+    <h2>What the filings say about {t}</h2>
+    <p>{plain}</p>
+  </section>
+
+  <section data-chrome class="prose prose-slate mt-8 max-w-none">
+    <h2>{t} 7-day yield as filed, {day(h[0][0])} to {day(h[h.length - 1][0])}</h2>
+    <YieldChart series={[{ label: `${t} 7-day net yield`, points: h, color: '#1F5C4A' }]} caption={`Daily values the fund reported to the SEC in its monthly reports.`} />
+  </section>
+
+
   <section data-chrome class="prose prose-slate mt-8 max-w-none">
     <h2>Where {t} ranks after tax</h2>
     <p>Among the {sits[0].n} share classes in the data, for a single filer with $120,000 of taxable income and $50,000 in the fund:</p>
@@ -124,12 +125,7 @@ const rel = related(...[tx.vs, 'fifty-percent-rule', 'seven-day-yield', isMuni ?
       <thead><tr><th>State</th><th class="text-right">Rank</th><th class="text-right">Yield after tax</th><th class="text-right">Kept a year</th></tr></thead>
       <tbody>{sits.map((s) => <tr><td>{s.name}</td><td class="tabular-nums text-right">{s.pos} of {s.n}</td><td class="tabular-nums text-right">{pct(s.at)}</td><td class="tabular-nums text-right">{usd(s.net)}</td></tr>)}</tbody>
     </table></div>
-    <p>{`The rank compares ${t} with every other fund for a resident of that state. In Texas there is no state income tax, so every fund leaves you more there. Funds that lose a lot to state tax elsewhere gain the most, and some pass ${t}: that is why its rank can drop in Texas while the dollars it leaves you go up. In California, the fund ranked first kept ${usd(sits[0].gapTop)} a year more than ${t} on $50,000.`}</p>
-    <p>A rank of past yields, not a recommendation, and this site does not say which fund to hold. Moving cash to another fund can involve a minimum or a fee set by your brokerage. <a href="/en/">Rank every fund for your situation</a>.</p>
-  </section>
-
-  <section class="prose prose-slate mt-8 max-w-none">
-    <h2>What to watch in {t}</h2>
-    <p>{tx.watch(c)}</p>
+    <p>{`Texas has no state income tax, so every fund leaves more there; funds that lose most to state tax elsewhere gain most, which is why a rank can drop while the dollars go up.`}</p>
+    <p>A rank of past yields, not a recommendation. <a href="/en/">Rank every fund for your situation</a>.</p>
   </section>
 </ToolPage>

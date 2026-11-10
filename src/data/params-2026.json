@@ -8,7 +8,8 @@
     "source": "irs-rp",
     "single": [[0, 0.10], [12400, 0.12], [50400, 0.22], [105700, 0.24], [201775, 0.32], [256225, 0.35], [640600, 0.37]],
     "joint": [[0, 0.10], [24800, 0.12], [100800, 0.22], [211400, 0.24], [403550, 0.32], [512450, 0.35], [768700, 0.37]],
-    "niit": { "rate": 0.038, "single": 200000, "joint": 250000, "source": "irs-niit" }
+    "niit": { "rate": 0.038, "single": 200000, "joint": 250000, "source": "irs-niit" },
+    "standardDeduction": { "single": 16100, "joint": 32200, "source": "irs-rp", "note": "Rev. Proc. 2025-32 section 4.15, read 2026-11-10; used only in the help of the taxable income field" }
   },
   "states": {
     "CA": { "name": "California", "rule": "fifty", "year": 2025, "source": "ftb-ca",

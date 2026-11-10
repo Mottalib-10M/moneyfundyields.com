@@ -7,7 +7,7 @@ import { afterTax } from '../../lib/engine/tax';
 import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
 import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
 const vmf = fund('VMFXX'), spr = fund('SPRXX'), fzf = fund('FZFXX');
-const sit = { amount: 75000, state: 'IL', filing: 'joint' as const, income: 180000 };
+const sit = { amount: 50000, state: 'IL', filing: 'single' as const, income: 120000 };
 const a = afterTax(vmf, sit), b = afterTax(spr, sit);
 const title = fitTitle(['Illinois Money Market Fund Tax: 4.95% and U.S. Obligations', 'Illinois Money Market Fund Tax: 4.95% and the Exempt Share']);
 const description = fitDesc([
@@ -24,10 +24,10 @@ const faqs = [
   h1="Illinois money market fund tax: 4.95% and the U.S. obligation share"
   lede={`Illinois money market fund tax takes the state’s flat rate on the dividend, minus the part earned on U.S. obligations; repo income stays taxed. Yields as filed for ${YIELD_DAYS}, holdings as of ${day(META.month)}, Illinois rate for tax year 2025. Not tax or investment advice.`}
   faqs={faqs} related={related('us-government-obligations-percentage', 'fund-fzfxx', 'prime-vs-government-money-market-funds')} sources={src('il-pub101', 'il-rate', 'nmfp', 'irs-rp')}>
-  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VMFXX" b="SPRXX" methodHref={METHOD} defFiling="joint" defState="IL" defIncome={180000} defAmount={75000} id="c-il" />
+  <AfterTaxCalc client:load funds={PAGE_FUNDS} a="VMFXX" b="SPRXX" methodHref={METHOD} defState="IL" id="c-il" />
   <div class="prose prose-slate mt-10 max-w-none">
     <h2>Illinois tax on fund dividends: a flat rate, a proportional exemption, and repo taxed</h2>
-    <p>Illinois applies its flat 4.95% individual income tax to money market fund dividends and lets residents subtract the part that comes from obligations of the United States. Publication 101 of the Department of Revenue, which lists the federal obligations whose interest Illinois exempts, is explicit about the trap in money funds: income from repurchase agreements is not exempt, whatever the collateral. That matters because many government and Treasury funds hold a large share of repo. There is no 50% test, so every fund passes its exempt share through, large or small. For a joint return at $180,000 with {usd(75000)} in cash, Vanguard Federal (VMFXX), which filed {pct(vmf.y)} and held about {pct(vmf.usob, 0)} of its portfolio in exempt obligations, left {pct(a.afterTaxYield)} after Illinois and federal tax. Fidelity’s prime fund SPRXX, which filed {pct(spr.y)} with about {pct(spr.usob, 0)} of its holdings in exempt obligations, left {pct(b.afterTaxYield)}. The {usd(Math.abs(a.net - b.net))} a year between them comes from both the yield gap and the state exemption; the calculator lets you replace the holdings estimate with the percentage from the fund’s year-end letter.</p>
+    <p>Illinois applies its flat 4.95% individual income tax to money market fund dividends and lets residents subtract the part that comes from obligations of the United States. Publication 101 of the Department of Revenue, which lists the federal obligations whose interest Illinois exempts, is explicit about the trap in money funds: income from repurchase agreements is not exempt, whatever the collateral. That matters because many government and Treasury funds hold a large share of repo. There is no 50% test, so every fund passes its exempt share through, large or small. For one person at $120,000 of taxable income with {usd(50000)} in cash, Vanguard Federal (VMFXX), which filed {pct(vmf.y)} and held about {pct(vmf.usob, 0)} of its portfolio in exempt obligations, left {pct(a.afterTaxYield)} after Illinois and federal tax. Fidelity’s prime fund SPRXX, which filed {pct(spr.y)} with about {pct(spr.usob, 0)} of its holdings in exempt obligations, left {pct(b.afterTaxYield)}. The {usd(Math.abs(a.net - b.net))} a year between them comes from both the yield gap and the state exemption; the calculator lets you replace the holdings estimate with the percentage from the fund’s year-end letter.</p>
   </div>
   <StateTables st="IL" />
 </ToolPage>

@@ -4,7 +4,7 @@ import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
 import FundPair from '../../components/FundPair.astro';
 import { fund, pct, day } from '../../lib/data';
 import { afterTax, stateOptions, isNoTax } from '../../lib/engine/tax';
-import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { src, related, METHOD, PAGE_FUNDS, exampleVerdict } from '../../lib/common';
 import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
 const a = fund('SWVXX'), b = fund('SNSXX');
 // For every state the site handles with its own schedule or with no tax, who keeps more at $120,000 single.
@@ -25,7 +25,7 @@ const faqs = [
 ---
 <ToolPage id="swvxx-vs-snsxx" title={title} description={description} crumb="SWVXX vs SNSXX"
   h1="SWVXX vs SNSXX: Schwab prime or Treasury, state by state"
-  lede={`SWVXX (Schwab Prime Advantage) against SNSXX (Schwab U.S. Treasury), as filed for ${day(a.yDate)}. Not investment advice.`}
+  lede={`SWVXX (Schwab Prime Advantage) against SNSXX (Schwab U.S. Treasury), as filed for ${day(a.yDate)}. ${exampleVerdict(a, b)} Not investment advice.`}
   faqs={faqs} related={related('fund-swvxx', 'fund-snsxx', 'prime-vs-government-money-market-funds')} sources={src('nmfp', 'rule-2a7', 'ftb-ca', 'pa-pit', 'il-pub101')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="SNSXX" b="SWVXX" pick={false} methodHref={METHOD} id="c-ss" />
   <div class="prose prose-slate mt-10 max-w-none">

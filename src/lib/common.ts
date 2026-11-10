@@ -2,6 +2,7 @@
 import { PARAMS, FUNDS, lite, type Fund } from './data';
 import { PAGES, FUND_TICKERS, pageById } from './pages';
 import { route } from '../i18n/routes';
+import { afterTax, stateName } from './engine/tax';
 import type { Row } from '../components/calc/Comparator';
 
 type Src = { url: string; label: { en: string } };
@@ -17,3 +18,13 @@ export const LITES = FUNDS.map(lite);
 export const ROWS: Row[] = FUNDS.map((f: Fund) => ({ ...lite(f), reg: f.reg, assets: f.assets, min: f.min, g: f.g, href: fundHref(f.t) }));
 export const PAGE_FUNDS = LITES.filter((f) => (FUND_TICKERS as readonly string[]).includes(f.t));
 export { PAGES };
+
+/** Verdict of the site's one example, in words, for the first screen of a comparison page (testeurs naïfs du
+ *  2026-11-10, règle 2 : le résultat annoncé tout de suite). Same example and same rounding as the calculator. */
+export function exampleVerdict(a: Fund, b: Fund, st = 'CA'): string {
+  const s = { amount: 50000, state: st, filing: 'single' as const, income: 120000 };
+  const na = Math.round(afterTax(a, s).net), nb = Math.round(afterTax(b, s).net);
+  const usd0 = (n: number) => `$${n.toLocaleString('en-US')}`;
+  const who = `In the example below (one person in ${stateName(st)}, $120,000 of taxable income, $50,000)`;
+  return na === nb ? `${who}, both leave the same a year.` : na > nb ? `${who}, ${a.t} leaves ${usd0(na - nb)} more a year than ${b.t}.` : `${who}, ${b.t} leaves ${usd0(nb - na)} more a year than ${a.t}.`;
+}

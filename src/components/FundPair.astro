@@ -7,17 +7,15 @@ interface Props { tickers: string[]; heading: string; income?: number }
 const { tickers, heading, income = 120000 } = Astro.props;
 const fs = tickers.map(fund);
 const at = (st: string) => fs.map((f) => pct(afterTax(f, { amount: 50000, state: st, filing: 'single', income }).afterTaxYield));
+// Une ligne par notion, sans sigle (testeurs naïfs du 2026-11-10 : « 71,1 %, 61 %, 67 % : lequel compte ? »).
 const rows: Array<[string, string[]]> = [
   ['Type', fs.map((f) => `${KIND_LABEL[f.k]}${f.st ? ` (${f.st})` : ''}`)],
-  ['7-day net yield as filed', fs.map((f) => pct(f.y))],
-  ['Gross 7-day yield of the fund', fs.map((f) => (f.g != null ? pct(f.g) : 'n/a'))],
-  ['Fees taken from your yield (expense drag)', fs.map((f) => { const d = drag(f); return d != null ? pct(d) : 'n/a'; })],
-  ['State-tax-free part used by the calculator (U.S. government debt held at the last month end)', fs.map((f) => (f.k.endsWith('muni') ? 'n/a' : pct(f.usob, 1)))],
-  ...META.quarters.map((q): [string, string[]] => [`U.S. government debt on ${quarterLabel(q)}, for the 50% test only`, fs.map((f) => (f.k.endsWith('muni') ? 'n/a' : f.q[q] != null ? pct(f.q[q], 1) : 'n/a'))]),
-  ['Average days until holdings repay or reset their rate (weighted average maturity)', fs.map((f) => `${f.wam} days`)],
-  ['Average days until holdings are paid back in full (weighted average life)', fs.map((f) => `${f.wal} days`)],
-  ['Assets in the share class', fs.map((f) => bn(f.assets))],
-  ['Minimum initial investment on file', fs.map((f) => (f.min > 0 ? usd(f.min) : 'None reported'))],
+  ['Yield before tax (7-day, as reported)', fs.map((f) => pct(f.y))],
+  ['Fees taken from your yield', fs.map((f) => { const d = drag(f); return d != null ? pct(d) : 'n/a'; })],
+  ['Part of the dividend free of state tax (estimate used by the calculator)', fs.map((f) => (f.k.endsWith('muni') ? 'n/a' : pct(f.usob, 0)))],
+  [`Keeps that break in California, Connecticut and New York (50% test, ${META.quarters.map((q) => quarterLabel(q).replace(/, \d{4}$/, '')).join(' and ')})`, fs.map((f) => (f.k.endsWith('muni') ? 'n/a' : Object.values(f.q).every((v) => v >= 0.5) ? 'Yes' : 'No: all taxed'))],
+  ['Assets in this version of the fund', fs.map((f) => bn(f.assets))],
+  ['Minimum first purchase the fund reports', fs.map((f) => (f.min > 1 ? usd(f.min) : 'None ($1)'))],
   ['After tax, California', at('CA')],
   ['After tax, New York (outside NYC)', at('NY')],
   ['After tax, Texas', at('TX')],
@@ -29,5 +27,5 @@ const rows: Array<[string, string[]]> = [
     <thead><tr><th></th>{fs.map((f) => { const h = fundHref(f.t); return <th class="text-right">{h ? <a href={h}>{f.t}</a> : f.t}</th>; })}</tr></thead>
     <tbody>{rows.map(([l, v]) => <tr><td>{l}</td>{v.map((x) => <td class="tabular-nums text-right">{x}</td>)}</tr>)}</tbody>
   </table></div>
-  <p>{`The after-tax rows use one fixed example, the same in every side-by-side table on this site: a single filer with $${income.toLocaleString('en-US')} of taxable income, and this site’s estimate of the state-tax-free part. Your own figures go in the calculator above.`}</p>
+  <p>{`The after-tax rows use one fixed example, the same in every side-by-side table on this site: a single filer with $${income.toLocaleString('en-US')} of taxable income, and this site’s estimate of the state-tax-free part. Your own figures go in the calculator above. A brokerage can set its own minimum for the funds it offers.`}</p>
 </section>

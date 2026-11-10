@@ -4,7 +4,7 @@ import AfterTaxCalc from '../../components/calc/AfterTaxCalc';
 import FundPair from '../../components/FundPair.astro';
 import YieldChart from '../../components/YieldChart.astro';
 import { fund, pct, usd, day, drag, HISTORY } from '../../lib/data';
-import { src, related, METHOD, PAGE_FUNDS } from '../../lib/common';
+import { src, related, METHOD, PAGE_FUNDS, exampleVerdict } from '../../lib/common';
 import { title as fitTitle, desc as fitDesc } from '../../lib/snippet';
 const a = fund('SPAXX'), b = fund('FDRXX');
 const dA = drag(a) ?? 0, dB = drag(b) ?? 0;
@@ -22,7 +22,7 @@ const faqs = [
 ---
 <ToolPage id="spaxx-vs-fdrxx" title={title} description={description} crumb="SPAXX vs FDRXX"
   h1="SPAXX vs FDRXX: what the expense gap costs after tax"
-  lede={`SPAXX (Fidelity Government Money Market) against FDRXX (Fidelity Government Cash Reserves), as filed for ${day(a.yDate)}. Not investment advice.`}
+  lede={`SPAXX (Fidelity Government Money Market) against FDRXX (Fidelity Government Cash Reserves), as filed for ${day(a.yDate)}. ${exampleVerdict(a, b)} Not investment advice.`}
   faqs={faqs} related={related('fund-spaxx', 'fund-fdrxx', 'seven-day-yield')} sources={src('nmfp', 'rule-2a7', 'ftb-ca', 'irs-rp')}>
   <AfterTaxCalc client:load funds={PAGE_FUNDS} a="FDRXX" b="SPAXX" pick={false} methodHref={METHOD} id="c-sf" />
   <div class="prose prose-slate mt-10 max-w-none">

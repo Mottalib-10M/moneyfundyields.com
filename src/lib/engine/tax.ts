@@ -29,6 +29,8 @@ export function marginal(s: Schedule, income: number): number {
   for (const [from, rate] of s) if (income > from) r = rate;
   return r;
 }
+/** 2026 standard deduction (Rev. Proc. 2025-32): pay minus this is a fair guess of taxable income. */
+export const STANDARD_DEDUCTION = (P.federal as unknown as { standardDeduction: { single: number; joint: number } }).standardDeduction;
 export const isNoTax = (st: string) => st in P.noTaxNames;
 export const hasSchedule = (st: string) => st in STATES;
 export function stateName(st: string): string {

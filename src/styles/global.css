@@ -118,3 +118,8 @@ p[id$="-help"]:not([role="status"]), [data-fixe], [data-actuellement], [aria-liv
   [aria-live] table tr:has(> td + td) { border-top: 1px solid var(--color-navy-200); padding: .3rem 0; }
   [aria-live] table tr > td + td { flex: 1 1 100%; padding-top: .1rem; text-align: left; font-weight: 600; }
 }
+
+/* Champs en subgrid : quand le formulaire est étiré à la hauteur du résultat voisin, ses rangées ne doivent pas s'étirer (trous entre libellé, case et aide). */
+:where(form, div, fieldset):has(> .grid-rows-subgrid) { align-content: start; }
+/* Dans une grille, le cadre du formulaire s'arrête sous ses champs au lieu de s'étirer à la hauteur du résultat. */
+.grid > form:has(> .grid-rows-subgrid) { align-self: start; }

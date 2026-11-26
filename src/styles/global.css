@@ -4,7 +4,7 @@
 @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400 700; font-display: swap; src: url('/fonts/inter-var.woff2') format('woff2'); }
 @theme {
   --color-navy-50: #f8fafc; --color-navy-100: #f1f5f9; --color-navy-200: #e2e8f0; --color-navy-300: #cbd5e1; --color-navy-400: #94a3b8; --color-navy-500: #64748b; --color-navy-600: #475569; --color-navy-700: #334155; --color-navy-800: #1e293b; --color-navy-900: #0f172a; --color-navy-950: #020617;
-  --color-accent-50: #f0faf7; --color-accent-100: #ddf3ed; --color-accent-200: #bae8da; --color-accent-300: #8dd8c2; --color-accent-400: #5fc9aa; --color-accent-500: #1F5C4A; --color-accent-600: #1a4e3f; --color-accent-700: #164034; --color-accent-800: #113429; --color-accent-900: #0e2821;
+  --color-accent-50: #EEF1F4; --color-accent-100: #DDE2E9; --color-accent-200: #B6C1D0; --color-accent-300: #8498B0; --color-accent-400: #476488; --color-accent-500: #0A3161; --color-accent-600: #092C57; --color-accent-700: #08274E; --color-accent-800: #06203F; --color-accent-900: #051830;
   --color-success: #15803d; --color-warning: #b45309; --color-error: #dc2626;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
@@ -123,3 +123,67 @@ p[id$="-help"]:not([role="status"]), [data-fixe], [data-actuellement], [aria-liv
 :where(form, div, fieldset):has(> .grid-rows-subgrid) { align-content: start; }
 /* Dans une grille, le cadre du formulaire s'arrête sous ses champs au lieu de s'étirer à la hauteur du résultat. */
 .grid > form:has(> .grid-rows-subgrid) { align-self: start; }
+
+/* === Charte du pays (refonte d'identité validée par l'éditeur, appliquée le 2026-11-25) ===
+   En-tête plein, bandeau héros, simulateur en carte, sections alternées, chiffres-résultats, boutons et pied
+   aux couleurs du pays ; l'échelle --color-accent-* du @theme porte la couleur forte. */
+/* En-tête plein + filet de la 2e couleur */
+header > div[class*="fixed"][class*="h-1"] { background:#0A3161 !important; }
+header nav[aria-label] { background:#0A3161 !important; border-bottom:5px solid #B31942 !important; backdrop-filter:none !important; box-shadow:none !important; }
+header nav[aria-label] :is(a,span,button,summary,svg):not(#mobile-menu *):not(.nav-dropdown-panel *) { color:#fff !important; }
+header nav[aria-label] a[class*="border"]:not(#mobile-menu *):not(.nav-dropdown-panel *) { border-color:rgba(255,255,255,.8) !important; background:transparent !important; }
+header nav[aria-label] img { background:#fff; border-radius:8px; padding:2px; }
+header nav[aria-label] .nav-dropdown-panel, header nav[aria-label] #mobile-menu { background:#fff !important; }
+header nav[aria-label] :is(.nav-dropdown-panel, #mobile-menu) :is(a,span,button,p,li,summary) { color:#0F172A !important; }
+/* Bandeau héros pleine largeur : H1 et chapeau en blanc */
+main :is(header,div:not(.mx-auto):not(.prose)):has(> h1) { background:#0A3161 !important; border-image:linear-gradient(#0A3161 0 0) fill 0 / 0 / 4rem 100vmax 0; margin-bottom:0 !important; padding-top:1.25rem !important; padding-bottom:1.5rem !important; border-style:solid !important; border-width:0 !important; }
+main :is(header,div:not(.mx-auto):not(.prose)):has(> h1) :is(h1,p,li,span,small,strong,em,time,label,a,dt,dd,b,i) { color:#fff !important; }
+main :is(header,div:not(.mx-auto):not(.prose)):has(> h1) a { text-decoration:underline; text-decoration-color:#B31942; text-decoration-thickness:2px; }
+main :is(header,div:not(.mx-auto):not(.prose)):has(> h1) [class*="bg-"] { background:transparent !important; border-color:rgba(255,255,255,.6) !important; }
+main :is(header,div:not(.mx-auto):not(.prose)):has(> h1) ~ :not([data-outil]):not([data-outil] ~ *):not(:has([data-outil])):has(~ :is([data-outil], astro-island:has([data-outil]))) { background:#0A3161 !important; border-image:linear-gradient(#0A3161 0 0) fill 0 / 0 / 0 100vmax 8rem; border-style:solid !important; border-width:0 !important; margin-top:0 !important; margin-bottom:0 !important; padding-top:.75rem; padding-bottom:.75rem; border-color:rgba(255,255,255,.35) !important; }
+main :is(header,div:not(.mx-auto):not(.prose)):has(> h1) ~ :not([data-outil]):not([data-outil] ~ *):not(:has([data-outil])):has(~ :is([data-outil], astro-island:has([data-outil]))) :is(p,h2,h3,span,strong,a,li,small,label,summary,dt,dd,b,em) { color:#fff !important; }
+main :is(header,div:not(.mx-auto):not(.prose)):has(> h1) ~ :not([data-outil]):not([data-outil] ~ *):not(:has([data-outil])):has(~ :is([data-outil], astro-island:has([data-outil]))) :is(li,a,div,dd,dt)[class*="bg-"] { background:transparent !important; border-color:rgba(255,255,255,.55) !important; }
+main :is(header,div:not(.mx-auto):not(.prose)):has(> h1) ~ :not([data-outil]):not([data-outil] ~ *):not(:has([data-outil])):has(~ :is([data-outil], astro-island:has([data-outil])))[class*="bg-"] { background:#0A3161 !important; }
+main :is(header,div:not(.mx-auto):not(.prose)):has(> h1):has(~ :is([data-outil], astro-island:has([data-outil]))) { border-image-outset:4rem 100vmax 8rem; }
+/* Le simulateur : carte blanche à bord haut épais de la 2e couleur ; le bandeau descend de 8rem derrière son haut (border-image, sans ombre) */
+main [data-outil] { background:#fff !important; border:0 !important; border-top:6px solid #B31942 !important; border-radius:14px !important; padding:1.1rem !important; box-shadow:none !important; position:relative; margin-top:1.5rem !important; margin-bottom:2.5rem !important; }
+main [data-outil] [data-outil] { border-top:0 !important; box-shadow:none !important; clip-path:none; padding:0 !important; margin:0 !important; }
+body div:is([role="group"],[role="radiogroup"],.grid) > button:is([class~="bg-accent-500"],[class~="bg-accent-600"],[class~="bg-accent-700"]), body button[aria-pressed="true"] { background:#0A3161 !important; color:#fff !important; transition:none !important; }
+main :is(.text-navy-500,.text-navy-400,.text-slate-500,.text-gray-500):not(:is(header,div):has(> h1) *) { color:#475569 !important; }
+/* Chiffres-résultats grands, dans l'accent, sur fond teinté */
+main [aria-live] :is([class*="text-2xl"],[class*="text-3xl"],[class*="text-4xl"]), main [data-resultat] :is([class*="text-2xl"],[class*="text-3xl"]) { font-size:2.1rem !important; line-height:1.15 !important; color:#B31942 !important; background:#EBEFF2; border-radius:8px; padding:.05em .3em; }
+main [data-outil] :is([class*="text-3xl"],[class*="text-4xl"],[class*="text-5xl"]):not(button):not(label) { color:#B31942 !important; }
+/* Sections alternées blanc / teinte, titres soulignés de l'accent */
+main [data-outil] ~ section:nth-of-type(odd), main [data-outil] ~ div.prose:nth-of-type(even) { background:#EBEFF2; box-shadow:0 0 0 100vmax #EBEFF2; clip-path:inset(0 -100vmax); padding-top:1.5rem; padding-bottom:1.5rem; }
+main h2:not([data-outil] h2):not(:is(header,div:not(.mx-auto):not(.prose)):has(> h1) ~ * h2) { color:#0A3161 !important; border-left:8px solid #B31942; padding-left:.6rem; }
+main h3:not([data-outil] h3) { color:#0A3161; }
+/* Boutons pleins, liens soulignés de couleur */
+main button[type="submit"], main :is(a,button):is([class~="bg-accent-500"],[class~="bg-accent-600"],[class~="bg-accent-700"]), main :is(a,button)[class*="bg-brand"], main :is(a,button)[class*="bg-primary"] { background:#B31942 !important; color:#FFFFFF !important; border-color:#B31942 !important; border-radius:10px !important; font-weight:700; }
+main button[type="submit"]:hover, main :is(a,button):is([class~="bg-accent-600"],[class~="bg-accent-700"]):hover { background:#981538 !important; }
+main :is(.prose a, p > a, li > a):not([class*="bg-"]):not(:is(header,div:not(.mx-auto):not(.prose)):has(> h1) *):not(:is(header,div:not(.mx-auto):not(.prose)):has(> h1) ~ :not([data-outil]):not([data-outil] ~ *):not(:has([data-outil])):has(~ :is([data-outil], astro-island:has([data-outil]))) *) { color:#0A3161 !important; text-decoration:underline; text-decoration-color:#B31942; text-decoration-thickness:2px; text-underline-offset:3px; }
+/* Encadrés et tableaux */
+main .bg-accent-50 { background:#EBEFF2 !important; border-left:6px solid #B31942; }
+main table thead th { color:#0A3161 !important; border-bottom-color:transparent !important; box-shadow:inset 0 -3px 0 #B31942; background:#EBEFF2 !important; }
+/* Pied de page plein sombre, filet de la 2e couleur */
+footer { background:#061C38 !important; border-top:6px solid #B31942 !important; }
+footer, footer *:not(svg):not(path) { color:#E5E7EB !important; border-color:rgba(255,255,255,.18) !important; }
+footer *:not(svg):not(path) { background-color:transparent !important; }
+footer a { color:#fff !important; text-decoration:underline; text-decoration-color:#B31942; }
+main .dg-btn.dg-primaire { background:#B31942 !important; color:#FFFFFF !important; border-color:#B31942 !important; }
+main button.fixed { background:#EBEFF2 !important; color:#0F172A !important; border:0 !important; border-top:4px solid #B31942 !important; border-radius:0 !important; }
+
+/* h1 posé directement dans le conteneur principal : le bandeau se fait sur le h1 et son chapeau */
+main > div.mx-auto > h1, main > div.mx-auto > h1 + p { background:#0A3161 !important; border-image:linear-gradient(#0A3161 0 0) fill 0 / 0 / 0 100vmax 0; border-style:solid !important; border-width:0 !important; color:#fff !important; margin:0 !important; padding-top:1rem; padding-bottom:1rem; }
+main > div.mx-auto > h1 { border-image-outset:4rem 100vmax 0; }
+main > div.mx-auto > h1 + p * { color:#fff !important; }
+/* check-layout : sur ordinateur, le titre suit l'en-tête de près (blanc avant le titre ≤ 80 px) */
+@media (min-width: 768px) { main :is(header,div:not(.mx-auto):not(.prose)):has(> h1) { padding-top:0 !important; } }
+/* check-layout à 320 px : « Married, joint » tient dans son option de la bascule */
+@media (max-width: 359px) { main [role="group"] button[aria-pressed] { padding-left:.375rem !important; padding-right:.375rem !important; } }
+/* check-premier-ecran : titre et chapeau posés dans le conteneur, bandeau resserré ; un vrai blanc sous le bandeau ; pastilles sur une ligne défilante sur téléphone */
+main > div.mx-auto > h1 { padding-top:0 !important; padding-bottom:.25rem !important; }
+main > div.mx-auto > h1 + p { padding-top:0 !important; padding-bottom:1rem !important; }
+main > div.mx-auto > h1 + p + nav[data-chrome] { margin-top:.75rem; }
+main > div.mx-auto > p[data-chrome] + div [data-outil]:not([data-outil] *) { margin-top:.75rem !important; }
+@media (max-width: 639px) { main > div.mx-auto > h1 + p + nav[data-chrome] { flex-wrap:nowrap; overflow-x:auto; padding-bottom:2px; } main > div.mx-auto > h1 + p + nav[data-chrome] > a { flex:none; } }
+/* === fin de la charte du pays === */
